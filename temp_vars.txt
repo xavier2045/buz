@@ -1,0 +1,5 @@
+// 新IP创作类型选择
+const newIPCreationType = ref('')
+
+// 混音创作类型选择
+const remixCreationType = ref('')
