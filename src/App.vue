@@ -1,172 +1,53 @@
 <template>
   <div class="app-container">
-    <div class="blur-container">
-      <!-- StartPage component -->
-      <StartPage
-        v-if="currentPage === 'start'"
-        @navigate="navigateTo"
-        @show-unavailable="showUnavailable"
-      />
-
-      <!-- WorkTypePage component -->
-      <WorkTypePage 
-        v-if="currentPage === 'workType'"
-        @navigate-back="navigateBack"
-        @navigate-next="handleWorkTypeSelection"
-      />
-
-      <!-- Other page components will be added when refactored -->
-      <!-- For now, just display a placeholder for other pages -->
-      <div v-if="!['start', 'workType'].includes(currentPage)" class="placeholder-page">
-        <h2>页面正在优化中</h2>
-        <p>此页面内容正在进行代码优化，即将完成</p>
-        <button class="back-to-start" @click="navigateTo('start')">返回首页</button>
-      </div>
-
-      <!-- Unavailable feature modal -->
-      <Modal
-        :show="showModal"
-        title="即将推出"
-        :message="modalMessage"
-        @close="closeModal"
-      />
-    </div>
+    <BlurContainer />
   </div>
 </template>
 
 <script setup lang="ts">
+import BlurContainer from './components/layout/BlurContainer.vue';
 import { ref } from 'vue';
-import StartPage from './components/pages/StartPage.vue';
-import WorkTypePage from './components/pages/WorkTypePage.vue';
-import Modal from './components/common/Modal.vue';
 
-// Navigation state
-const currentPage = ref('start');
-const previousPage = ref('');
-
-// Modal state
-const showModal = ref(false);
-const modalMessage = ref('');
-
-// Navigation functions
-const navigateTo = (page: string) => {
-  previousPage.value = currentPage.value;
-  currentPage.value = page;
-};
-
-const navigateBack = () => {
-  currentPage.value = previousPage.value || 'start';
-};
-
-const handleWorkTypeSelection = (workType: string) => {
-  // In the actual implementation, we would store the workType
-  // For now, just navigate to the next page
-  navigateTo('license');
-};
-
-// Modal functions
-const showUnavailable = (type: string) => {
-  modalMessage.value = `${type === 'task' ? '任务' : '活动'}发布功能即将推出，敬请期待！`;
-  showModal.value = true;
-};
-
-const closeModal = () => {
-  showModal.value = false;
-};
+// 添加AI训练设置状态
+const aiTrainingEnabled = ref(true); // 默认允许AI训练，但不再强制
 </script>
 
 <style>
-/* Global styles */
-:root {
-  font-family: 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #121212;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  min-width: 320px;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* Main App Container */
-.app-container {
-  width: 100%;
-  min-height: 100vh;
-  background: radial-gradient(circle at center, #2a2a72 0%, #0f0f2d 100%);
-  position: relative;
+html, body {
+  height: 100%;
   overflow: hidden;
 }
 
-.blur-container {
+body {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  color: white;
+  background: linear-gradient(to bottom, #07070f, #0a0a1e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   position: relative;
-  width: 100%;
-  min-height: 100vh;
-  backdrop-filter: blur(10px);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  perspective: 1000px;
 }
 
-/* Placeholder styles */
-.placeholder-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  max-width: 500px;
+button {
+  font-family: inherit;
 }
 
-.placeholder-page h2 {
-  margin-bottom: 20px;
-  color: white;
-}
-
-.placeholder-page p {
-  margin-bottom: 30px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.back-to-start {
-  padding: 10px 24px;
-  border-radius: 24px;
-  background: linear-gradient(90deg, #00c6ff, #0072ff);
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.back-to-start:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .placeholder-page {
-    width: 95%;
-    padding: 20px;
-  }
-}
-</style> 
+/* 通用样式可以在这里添加 */
+</style>

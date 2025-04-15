@@ -64,6 +64,40 @@
           </div>
         </div>
 
+        <!-- 创作类型选择 -->
+        <div class="creation-type-section" v-if="selectedWorkType">
+          <h3 class="creation-type-title">创作类型</h3>
+          <div class="creation-type-options">
+            <div 
+              class="creation-type-option" 
+              :class="{ selected: creationType === 'human' }"
+              @click="selectCreationType('human')"
+            >
+              <div class="checkbox">
+                <div class="checkbox-inner" v-if="creationType === 'human'"></div>
+              </div>
+              <div class="creation-type-content">
+                <div class="creation-type-icon">👤</div>
+                <span>人类创作</span>
+              </div>
+            </div>
+            
+            <div 
+              class="creation-type-option" 
+              :class="{ selected: creationType === 'ai' }"
+              @click="selectCreationType('ai')"
+            >
+              <div class="checkbox">
+                <div class="checkbox-inner" v-if="creationType === 'ai'"></div>
+              </div>
+              <div class="creation-type-content">
+                <div class="creation-type-icon">👤+🤖</div>
+                <span>人+AI创作</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 提示信息区域 -->
         <div class="info-panel">
           <div class="info-icon">
@@ -83,7 +117,7 @@
           <button class="back-btn" @click="goBack">
             <span class="arrow">←</span> 返回
           </button>
-          <button class="next-btn" @click="goNext" :disabled="!selectedWorkType">
+          <button class="next-btn" @click="goNext" :disabled="!selectedWorkType || !creationType">
             下一步 <span class="arrow">→</span>
           </button>
         </div>
@@ -133,7 +167,7 @@
             @click="selectLicense('open')"
           >
             <div class="license-header">
-              <span class="license-tag blue" @click.stop="openLicenseDetailModal('open')">
+              <span class="license-tag blue">
                 <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" id="ai" width="20" height="20" enable-background="new 0 0 48 48" version="1.1" viewBox="0 0 48 48" class="license-icon">
                   <g>
                     <path d="M26.2,32.5l-1.5-3.4h-6.6l-1.5,3.4h-3.7l6.8-15.7h3.4l6.8,15.7H26.2z M34.8,32.5h-3.4V20.4h3.4V32.5z M34.5,18.9c-0.4,0.4-0.9,0.6-1.4,0.6c-0.6,0-1-0.2-1.4-0.6c-0.4-0.4-0.6-0.9-0.6-1.4c0-0.6,0.2-1,0.6-1.4c0.4-0.4,0.9-0.6,1.4-0.6c0.6,0,1,0.2,1.4,0.6c0.4,0.4,0.6,0.9,0.6,1.4C35.1,18,34.9,18.5,34.5,18.9z"></path>
@@ -147,8 +181,8 @@
             <div class="license-content">
               <p class="license-description-zh">免费分发和混音，无限制、无收入要求、无归属要求</p>
             </div>
-            <div class="license-footer">
-              <div class="license-icons">
+            <div class="license-footer license-footer-open">
+              <div class="license-icons license-icons-open">
                 <span class="icon" title="提供文档">📄</span>
                 <span class="icon" title="无需付费">$</span>
                 <span class="icon" title="允许混音">↩️</span>
@@ -165,14 +199,14 @@
             @click="selectLicense('non-commercial')"
           >
             <div class="license-header">
-              <span class="license-tag purple" @click.stop="openLicenseDetailModal('non-commercial')"><i class="license-icon">🏆</i> 为您的作品获得认可</span>
+              <span class="license-tag purple"><i class="license-icon">🏆</i> 为您的作品获得认可</span>
             </div>
             <h2>非商业混音</h2>
             <div class="license-content">
               <p class="license-description-zh">任何人都可使用您的作品创建非商业项目</p>
             </div>
-            <div class="license-footer">
-              <div class="license-icons">
+            <div class="license-footer license-footer-noncommercial">
+              <div class="license-icons license-icons-noncommercial">
                 <span class="icon" title="提供文档">📄</span>
                 <span class="icon" title="无需付费">$</span>
                 <span class="icon" title="允许混音">↩️</span>
@@ -189,14 +223,14 @@
             @click="selectLicense('commercial')"
           >
             <div class="license-header">
-              <span class="license-tag green" @click.stop="openLicenseDetailModal('commercial')"><i class="license-icon">💲</i> 为您的作品获得报酬</span>
+              <span class="license-tag green"><i class="license-icon">💲</i> 为您的作品获得报酬</span>
             </div>
             <h2>商业使用</h2>
             <div class="license-content">
               <p class="license-description-zh">允许他人按照您设定的经济条款使用您的作品</p>
             </div>
-            <div class="license-footer">
-              <div class="license-icons">
+            <div class="license-footer license-footer-commercial">
+              <div class="license-icons license-icons-commercial">
                 <span class="icon" title="提供文档">📄</span>
                 <span class="icon" title="需要付费">$</span>
                 <span class="icon" title="限制混音">↩️</span>
@@ -213,14 +247,14 @@
             @click="selectLicense('commercial-remix')"
           >
             <div class="license-header">
-              <span class="license-tag red" @click.stop="openLicenseDetailModal('commercial-remix')"><i class="license-icon">💰</i> 获得报酬与认可</span>
+              <span class="license-tag red"><i class="license-icon">💰</i> 获得报酬与认可</span>
             </div>
             <h2>商业混音</h2>
             <div class="license-content">
               <p class="license-description-zh">允许他人混音您的作品，同时您获得认可和收益</p>
             </div>
-            <div class="license-footer">
-              <div class="license-icons">
+            <div class="license-footer license-footer-commercial-remix">
+              <div class="license-icons license-icons-commercial-remix">
                 <span class="icon" title="提供文档">📄</span>
                 <span class="icon" title="需要付费">$</span>
                 <span class="icon" title="允许混音">↩️</span>
@@ -936,88 +970,292 @@
                 <button class="add-license-btn" @click="goToLicense">添加许可证</button>
               </div>
               
-              <div class="licenses-section" :class="{ 'has-modal': showLicenseDetailModal }">
-                <!-- 许可证详情弹窗 -->
-                <div v-if="showLicenseDetailModal" class="license-detail-modal">
-                  <div class="license-detail-content">
-                    <!-- Modal content here... -->
-                    <div class="license-detail-header">
-                      <div class="license-ip-logo">
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M30 55C43.8071 55 55 43.8071 55 30C55 16.1929 43.8071 5 30 5C16.1929 5 5 16.1929 5 30C5 43.8071 16.1929 55 30 55Z" stroke="white" stroke-width="2"/>
-                          <path d="M20.9091 36V24.7273H25.0682C26.0152 24.7273 26.8106 24.8864 27.4545 25.2045C28.0985 25.5227 28.5833 25.9716 28.9091 26.5511C29.2348 27.1307 29.3977 27.8144 29.3977 28.6023C29.3977 29.3977 29.2311 30.0871 28.8977 30.6705C28.5644 31.2538 28.0644 31.7045 27.3977 32.0227C26.7311 32.3409 25.9053 32.5 24.9205 32.5H22.5455V30.5682H24.4773C25.0152 30.5682 25.4508 30.4962 25.7841 30.3523C26.1174 30.2083 26.3636 29.9924 26.5227 29.7045C26.6818 29.4167 26.7614 29.0492 26.7614 28.6023C26.7614 28.1553 26.6818 27.7841 26.5227 27.4886C26.3636 27.1932 26.1174 26.9716 25.7841 26.8239C25.4508 26.6761 25.0152 26.6023 24.4773 26.6023H23.4773V36H20.9091Z" fill="white"/>
-                        <path d="M36.8636 24.7273V36H34.3295V24.7273H36.8636Z" fill="white"/>
-                      </svg>
+              <div class="licenses-section">
+                <div class="licenses-list">
+                  <div v-for="license in selectedLicenses" :key="license" class="license-item">
+                    <div class="license-item-content">
+                      <div class="license-info">
+                        <span class="license-name">{{ getLicenseName(license) }}</span>
+                      </div>
+                      <div class="license-actions">
+                        <button class="license-search-btn" @click="handleLicenseSearch(license)">
+                          <span class="search-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" x="0" y="0" version="1.1" viewBox="0 0 29 29" width="16" height="16">
+                              <circle cx="11.854" cy="11.854" r="9" style="fill:none;stroke:#fff;stroke-width:2;stroke-miterlimit:10"></circle>
+                              <path d="M18.451 18.451l7.695 7.695" style="fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"></path>
+                            </svg>
+                          </span>
+                        </button>
+                        <button class="license-delete-btn" @click="removeLicense(license)">
+                          <span class="delete-icon">×</span>
+                        </button>
+                      </div>
                     </div>
-                    <div class="license-detail-title">{{ currentLicenseDetail.title }}</div>
-                    <!-- License icons -->
-                    <div class="license-detail-icons">
-                      <span class="detail-icon">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="6" cy="6" r="5.5" stroke="white"/>
-                        </svg>
-                      </span>
-                      <span class="detail-icon">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M11 6.5C11 5.11929 8.76142 4 6 4C3.23858 4 1 5.11929 1 6.5C1 7.88071 3.23858 9 6 9C8.76142 9 11 7.88071 11 6.5Z" stroke="white"/>
-                          <circle cx="6" cy="5.5" r="2.5" stroke="white"/>
-                        </svg>
-                      </span>
-                      <span class="detail-icon">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M6 1V9M1 6L6 11L11 6" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                      <span class="detail-icon">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M6 11C8.76142 11 11 8.76142 11 6C11 3.23858 8.76142 1 6 1C3.23858 1 1 3.23858 1 6C1 8.76142 3.23858 11 6 11Z" stroke="white"/>
-                          <path d="M3 7L5 8.5L9 4.5" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                    <button class="close-detail-btn" @click="closeLicenseDetailModal">×</button>
                   </div>
-
-                  <div class="license-detail-body">
-                    <div class="license-summary-section">
-                      <h3>License Summary</h3>
-                      <p>{{ currentLicenseDetail.summary }}</p>
-                    </div>
-
-                    <div class="license-terms-section">
-                      <h3>License Terms</h3>
-                      <div class="license-terms-list">
-                        <div v-for="(term, index) in currentLicenseDetail.terms" :key="index" class="license-term-item">
-                          <div class="term-icon" :class="term.key">
-                  <svg v-if="term.key === 'attribution'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM11 8H13V10H11V8ZM11 11H13V16H11V11Z" fill="white"/>
-                  </svg>
-                  <svg v-else-if="term.key === 'commercial'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" fill="white"/>
-                  </svg>
-                  <svg v-else-if="term.key === 'remix'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z" fill="white"/>
-                  </svg>
-                  <svg v-else-if="term.key === 'royalty'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 9h-6V7H7v2H3v9h18V9h-6Zm-8 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm10 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="white"/>
-                  </svg>
-                  <svg v-else-if="term.key === 'ai'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7.5 4A5.5 5.5 0 0 0 2 9.5c0 .5.09 1 .22 1.5H6.3l1.94-3.89c.54-1.08 2.08-1.08 2.62 0l3.33 6.67 1.34-2.67c.27-.54.82-.89 1.41-.89H19v-1.5A5.5 5.5 0 0 0 13.5 4h-6M3.81 13c1.09 1.97 3.28 3 5.69 3h6c2.41 0 4.6-1.03 5.69-3h-4.13L15.41 16c-.38.77-1.51.77-1.89 0l-3.33-6.67-1.95 3.89c-.27.54-.82.89-1.41.89H3.81Z" fill="white"/>
-                  </svg>
+                  <!-- Show placeholder if no licenses are selected -->
+                  <div v-if="selectedLicenses.length === 0" class="no-licenses-placeholder">
+                    <p>暂无选择许可证</p>
+                  </div>
                 </div>
-                <span class="term-text">{{ term.text }}</span>
+              </div>
+              
+              <div class="review-section-header">
+                <h3 class="section-title">您的资产</h3>
+              </div>
+              
+              <div class="asset-section">
+                <!-- 资产部分内容 -->
+                <div v-for="(file, index) in uploadedFiles" :key="index" class="asset-preview-card" :class="{ 'audio-asset': file.type.startsWith('audio/') }">
+                  <div class="asset-image-container">
+                    <!-- 图片文件 -->
+                    <img v-if="file.type.startsWith('image/')" :src="file.url" class="asset-preview-image" alt="Asset preview" />
+                    
+                    <!-- 视频文件 -->
+                    <video v-else-if="file.type.startsWith('video/')" :src="file.url" class="asset-preview-video" controls></video>
+                    
+                    <!-- 音频文件 -->
+                    <div v-else-if="file.type.startsWith('audio/')" class="asset-preview-audio">
+                      <div class="audio-icon">♪</div>
+                    </div>
+                    
+                    <!-- 其他类型文件 -->
+                    <div v-else class="asset-placeholder">
+                      <div class="placeholder-icon">📄</div>
+                    </div>
+                  </div>
+                  
+                  <div class="asset-preview-info">
+                    <div class="asset-source">公共资源门户</div>
+                    <div class="asset-name">{{ assetName || "Hiroyoshi Kaninnomiya" }}</div>
+                    
+                    <div class="asset-owner">
+                      <div class="asset-owner-label">持有者</div>
+                      <div class="owners-avatar-row">
+                        <!-- 当前用户/主要创作者 -->
+                        <div class="avatar-badge current-owner-badge">
+                          <span class="owner-icon">●</span>
+                        </div>
+                        
+                        <!-- 显示共同创作者 -->
+                        <template v-if="coCreators && coCreators.length > 0">
+                          <div v-for="(_, idx) in coCreators.slice(0, 2)" :key="idx" class="avatar-badge creator-badge">
+                            <span class="owner-icon">●</span>
+                          </div>
+                          
+                          <!-- 如果共同创作者超过2个，显示+X -->
+                          <div v-if="coCreators.length > 2" class="avatar-badge more-badge">
+                            <span class="owner-count">+{{ coCreators.length - 2 }}</span>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 如果没有文件，显示占位符 -->
+                <div v-if="uploadedFiles.length === 0" class="asset-preview-card">
+                  <div class="asset-image-container">
+                    <div class="asset-placeholder">
+                      <div class="placeholder-icon">?</div>
+                    </div>
+                  </div>
+                  
+                  <div class="asset-preview-info">
+                    <div class="asset-source">公共资源门户</div>
+                    <div class="asset-name">{{ assetName || "未命名资产" }}</div>
+                    
+                    <div class="asset-owner">
+                      <div class="asset-owner-label">持有者</div>
+                      <div class="owners-avatar-row">
+                        <!-- 当前用户/主要创作者 -->
+                        <div class="avatar-badge current-owner-badge">
+                          <span class="owner-icon">●</span>
+                        </div>
+                        
+                        <!-- 显示共同创作者 -->
+                        <template v-if="coCreators && coCreators.length > 0">
+                          <div v-for="(_, idx) in coCreators.slice(0, 2)" :key="idx" class="avatar-badge creator-badge">
+                            <span class="owner-icon">●</span>
+                          </div>
+                          
+                          <!-- 如果共同创作者超过2个，显示+X -->
+                          <div v-if="coCreators.length > 2" class="avatar-badge more-badge">
+                            <span class="owner-count">+{{ coCreators.length - 2 }}</span>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="review-actions">
+            <button class="back-review-btn" @click="goBack">
+              <span class="arrow">←</span> 返回
+            </button>
+            <button class="uiverse" @click="handleRegistration">
+              <div class="wrapper">
+                <span>发布</span>
+                <div class="circle circle-1"></div>
+                <div class="circle circle-2"></div>
+                <div class="circle circle-3"></div>
+                <div class="circle circle-4"></div>
+                <div class="circle circle-5"></div>
+                <div class="circle circle-6"></div>
+                <div class="circle circle-7"></div>
+                <div class="circle circle-8"></div>
+                <div class="circle circle-9"></div>
+                <div class="circle circle-10"></div>
+                <div class="circle circle-11"></div>
+                <div class="circle circle-12"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Add error notification -->
+    <div v-if="showFileTypeError" class="file-type-error">
+      <div class="error-content">
+        <span class="error-icon">⚠️</span>
+        <span class="error-message">{{ fileTypeErrorMessage }}</span>
+        <button class="error-close" @click="showFileTypeError = false">×</button>
+      </div>
+    </div>
+
+    <!-- 许可证冲突弹窗 -->
+    <div v-if="showLicenseConflictModal" class="license-conflict-modal">
+      <div class="modal-content">
+        <header class="modal-header">
+          <h2>许可证冲突</h2>
+          <span class="close-btn" @click="closeConflictModal">×</span>
+        </header>
+        <div class="modal-body">
+          <div class="conflict-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" id="ai" width="80" height="80" enable-background="new 0 0 48 48" version="1.1" viewBox="0 0 48 48">
+              <g>
+                <path fill="#000000" d="M26.2,32.5l-1.5-3.4h-6.6l-1.5,3.4h-3.7l6.8-15.7h3.4l6.8,15.7H26.2z M34.8,32.5h-3.4V20.4h3.4V32.5z M34.5,18.9c-0.4,0.4-0.9,0.6-1.4,0.6c-0.6,0-1-0.2-1.4-0.6c-0.4-0.4-0.6-0.9-0.6-1.4c0-0.6,0.2-1,0.6-1.4c0.4-0.4,0.9-0.6,1.4-0.6c0.6,0,1,0.2,1.4,0.6c0.4,0.4,0.6,0.9,0.6,1.4C35.1,18,34.9,18.5,34.5,18.9z"></path>
+                <polygon fill="#000000" points="19.5 26 23.4 26 21.4 21.5"></polygon>
+              </g>
+            </svg>
+          </div>
+          <div class="conflict-info">
+            <p class="conflict-title">无法添加以下许可证：</p>
+            <div class="conflict-license new-license">
+              <span class="license-tag">{{ conflictModalData.newLicenseName }}</span>
+            </div>
+            
+            <p class="conflict-title">已选择的冲突许可证：</p>
+            <div class="conflict-license existing-license">
+              <span class="license-tag" v-for="license in conflictModalData.conflictingLicenses" :key="license">
+                {{ getLicenseName(license) }}
+              </span>
+            </div>
+            
+            <p class="conflict-reason">
+              <span class="reason-label">冲突原因：</span>
+              {{ conflictModalData.reason }}
+            </p>
+          </div>
+          
+          <div class="valid-combinations">
+            <h3>有效的许可证组合</h3>
+            <div class="combination">
+              <div class="combination-group">
+                <span class="license-tag blue">开放使用</span>
+                <span class="combination-note">（单独使用）</span>
+              </div>
+            </div>
+            <div class="combination">
+              <div class="combination-group">
+                <span class="license-tag purple">非商业混音</span>
+                <span class="plus-sign">+</span>
+                <span class="license-tag green">商业使用</span>
+                <span class="plus-sign">+</span>
+                <span class="license-tag red">商业混音</span>
+                <span class="combination-note">（可任意组合）</span>
               </div>
             </div>
           </div>
         </div>
+        <div class="modal-footer">
+          <button class="modal-btn cancel-btn" @click="closeConflictModal">我知道了</button>
+        </div>
+      </div>
+    </div>
 
-        <div class="license-detail-footer">
-          <button class="view-legal-btn">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 2V14H14V4.83L11.17 2H2ZM11 5V2.5L13.5 5H11Z" fill="white"/>
-            </svg>
-            View legal code
-          </button>
+    <!-- 许可证详情弹窗 -->
+    <div v-if="showLicenseDetailModal" class="license-detail-modal">
+      <div class="modal-content license-detail-content">
+        <header class="modal-header">
+          <div class="license-detail-logo">
+            <div class="ip-logo">IP</div>
+            <div class="license-detail-title">{{ currentLicenseDetail.name }}</div>
+            <div class="license-detail-icons">
+              <span v-if="currentLicenseDetail.license === 'open'"><span class="license-icon">📝</span></span>
+              <span v-if="currentLicenseDetail.license === 'commercial' || currentLicenseDetail.license === 'commercial-remix'"><span class="license-icon">💲</span></span>
+              <span v-if="currentLicenseDetail.license === 'non-commercial' || currentLicenseDetail.license === 'commercial-remix'"><span class="license-icon">↩️</span></span>
+            </div>
+          </div>
+          <span class="close-btn" @click="closeLicenseDetailModal">×</span>
+        </header>
+        
+        <div class="modal-body">
+          <div class="license-summary">
+            <h3>许可证摘要</h3>
+            <p>{{ currentLicenseDetail.summary }}</p>
+          </div>
+          
+          <div class="license-terms">
+            <h3>许可条款</h3>
+            <div class="terms-list">
+              <div class="term-item" v-if="currentLicenseDetail.license === 'open'">
+                <div class="term-icon">📝</div>
+                <div class="term-text">无需标明出处</div>
+              </div>
+              <div class="term-item" v-else>
+                <div class="term-icon">📝</div>
+                <div class="term-text">需要标明出处</div>
+              </div>
+              
+              <div class="term-item">
+                <div class="term-icon">💲</div>
+                <div class="term-text">
+                  {{ currentLicenseDetail.license === 'non-commercial' ? '仅限非商业使用' : 
+                     currentLicenseDetail.license === 'commercial' || currentLicenseDetail.license === 'commercial-remix' ? '允许商业使用' : '允许任何使用' }}
+                </div>
+              </div>
+              
+              <div class="term-item">
+                <div class="term-icon">↩️</div>
+                <div class="term-text">
+                  {{ currentLicenseDetail.license === 'non-commercial' || currentLicenseDetail.license === 'commercial-remix' || currentLicenseDetail.license === 'open' ? '允许混音改编' : '不允许混音改编' }}
+                </div>
+              </div>
+              
+              <div class="term-item">
+                <div class="term-icon">📊</div>
+                <div class="term-text">
+                  {{ currentLicenseDetail.license === 'commercial' || currentLicenseDetail.license === 'commercial-remix' ? '收取版税' : '无版税共享' }}
+                </div>
+              </div>
+              
+              <div class="term-item">
+                <div class="term-icon">🤖</div>
+                <div class="term-text">{{ aiTrainingEnabled ? 'AI训练允许' : 'AI训练不允许' }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="license-view-legal">
+            <button class="view-legal-btn">
+              <span class="legal-icon">📄</span>
+              查看法律条款
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1041,7 +1279,7 @@ const tabs = [
 const expandedFilters = ref<Record<string, boolean>>({
   'ai-training': false,
   'commercial-use': false,
-  'attribution': false, // 修改为默认不展开
+  'attribution': false,
   'remixing': false,
   'expiration': false,
   'licensing-fee': false
@@ -1067,6 +1305,9 @@ const selectedLicenses = ref<string[]>([])
 
 // 当前选择的作品类型
 const selectedWorkType = ref('')
+
+// 创作类型选择状态
+const creationType = ref<string>('')
 
 // 资产详情页面数据
 const assetName = ref('')
@@ -1131,12 +1372,17 @@ const selectWorkType = (type: string) => {
   selectedWorkType.value = type
 }
 
+// 创作类型选择
+const selectCreationType = (type: string) => {
+  creationType.value = type
+}
+
 // 切换标签页
 const setActiveTab = (index: number) => {
   activeTabIndex.value = index
   // 切换标签页时清除选择的许可证
   if (index !== 0) {
-    selectedLicense.value = ''
+    selectedLicenses.value = []
   }
   
   // 切换到自定义许可证标签页时重置所有展开状态
@@ -1158,12 +1404,6 @@ const selectLicense = (license: string) => {
     if (licenseConflicts.hasConflict) {
       showLicenseConflictAlert(license, licenseConflicts.conflictingLicenses, licenseConflicts.reason)
     } else {
-      // 如果超过了最大选择数量（5个），显示提示
-      if (selectedLicenses.value.length >= 5) {
-        alert('您最多可以选择5个许可证');
-        return;
-      }
-      
       // 无冲突，添加许可证
       selectedLicenses.value.push(license)
       selectedLicense.value = license
@@ -1504,7 +1744,11 @@ const shortenWallet = (wallet: string) => {
 // 移除许可证
 const removeLicense = (license: string) => {
   selectedLicenses.value = selectedLicenses.value.filter(item => item !== license)
-  selectedLicense.value = selectedLicenses.value.length > 0 ? selectedLicenses.value[0] : ''
+  if (selectedLicenses.value.length > 0) {
+    selectedLicense.value = selectedLicenses.value[0]
+  } else {
+    selectedLicense.value = ''
+  }
   
   // 检查剩余的许可证组合是否有冲突
   checkCurrentLicenseCombination()
@@ -1549,15 +1793,17 @@ const goBack = () => {
 }
 
 const goNext = () => {
-  if (currentPage.value === 'workType' && selectedWorkType.value) {
-    // 从作品类型选择页面前进到资产详情页面
-    goToAssetDetails()
-  } else if (currentPage.value === 'assetDetails' && assetName.value && uploadedFiles.value.length > 0) {
-    // 从资产详情页面前进到创作者页面
-    goToCreators()
-  } else if (currentPage.value === 'creators') {
-    // 从创作者页面前进到许可证页面
-    goToLicense()
+  if (selectedWorkType.value && creationType.value) {
+    if (selectedWorkType.value === 'newIP') {
+      goToAssetDetails()
+    } else {
+      goToCreators()
+    }
+  } else {
+    // 显示错误提示
+    if (!creationType.value) {
+      alert('请选择创作类型')
+    }
   }
 }
 
@@ -1698,28 +1944,66 @@ const acceptConflict = () => {
   closeConflictModal();
 }
 
-const getLicenseName = (licenseId: string) => {
-  const licenseNames: Record<string, string> = {
+const getLicenseName = (license: string) => {
+  const licenseNames = {
     'open': '开放使用',
     'non-commercial': '非商业混音',
     'commercial': '商业使用',
     'commercial-remix': '商业混音'
   }
-  return licenseNames[licenseId] || licenseId;
+  return licenseNames[license as keyof typeof licenseNames] || license;
 }
 
 // 检查当前许可证组合是否有冲突
 const checkCurrentLicenseCombination = () => {
-  // 目前的冲突规则比较简单，开放使用与其他许可证冲突
-  // 如果需要更复杂的冲突检查，可以在这里扩展
-  const hasOpen = selectedLicenses.value.includes('open')
-  const hasOthers = selectedLicenses.value.some(l => ['commercial', 'commercial-remix', 'non-commercial'].includes(l))
+  // 检查是否包含开放使用许可证
+  const hasOpenLicense = selectedLicenses.value.includes('open');
   
-  if (hasOpen && hasOthers) {
-    // 有冲突，需要处理
-    console.warn('当前许可证组合存在冲突：开放使用与其他许可证不能同时选择')
-    // 可以在这里添加更多的冲突处理逻辑
+  // 检查是否包含其他许可证
+  const hasOtherLicenses = selectedLicenses.value.some(license => 
+    license === 'commercial' || license === 'commercial-remix' || license === 'non-commercial'
+  );
+  
+  // 只有同时包含开放使用和其他许可证才算冲突
+  if (hasOpenLicense && hasOtherLicenses) {
+    const otherLicenses = selectedLicenses.value.filter(l => 
+      ['commercial', 'commercial-remix', 'non-commercial'].includes(l)
+    );
+    
+    // 声明冲突相关变量
+    let conflictingLicense = '';
+    let conflictingWithLicense = '';
+    let reason = '';
+    
+    // 根据数量决定保留哪一类
+    if (otherLicenses.length >= 1) {
+      // 保留其他许可证，移除开放使用
+      selectedLicenses.value = otherLicenses;
+      conflictingLicense = 'open';
+      conflictingWithLicense = otherLicenses[0];
+      reason = '开放使用（完全免费无限制）与其他许可证类型互斥。系统已移除开放使用许可证。';
+    } else {
+      // 保留开放使用，移除其他许可证
+      selectedLicenses.value = ['open'];
+      conflictingLicense = otherLicenses[0];
+      conflictingWithLicense = 'open';
+      reason = '其他许可证类型与开放使用（完全免费无限制）互斥。系统已移除其他许可证。';
+    }
+    
+    // 更新selectedLicense以匹配
+    if (selectedLicenses.value.length > 0) {
+      selectedLicense.value = selectedLicenses.value[0];
+    } else {
+      selectedLicense.value = '';
+    }
+    
+    // 显示冲突提示
+    showLicenseConflictAlert(conflictingLicense, [conflictingWithLicense], reason);
+    
+    return true;
   }
+  
+  return false;
 }
 
 // 添加AI训练设置状态
@@ -1777,268 +2061,53 @@ const getFileTypeDisplay = (fileType: string) => {
   }
 }
 
-// 许可证详情弹框
+// 添加许可证详情弹窗状态
 const showLicenseDetailModal = ref(false);
 const currentLicenseDetail = ref({
-  title: 'Open Use',
-  summary: 'Open Domain is a public dedication tool, which enables creators to give up their copyright and put their works into the worldwide public domain. Reusers can distribute, remix, adapt, and build upon the asset in any medium or format, with no conditions.',
-  terms: [
-    { key: 'attribution', text: 'Attribution is not required' },
-    { key: 'commercial', text: 'Non-commercial use only' },
-    { key: 'remix', text: 'Remixing allowed' },
-    { key: 'royalty', text: 'No royalty sharing' },
-    { key: 'ai', text: 'AI training allowed' }
-  ]
+  license: '',
+  name: '',
+  summary: ''
 });
 
-// 许可证数据
-const licenseTypes = [
-  {
-    id: 'open',
-    title: 'Open Use',
-    description: 'Allow unrestricted use with no restrictions',
-    terms: [
-      { key: 'attribution', text: 'Attribution is not required' },
-      { key: 'commercial', text: 'Commercial use allowed' },
-      { key: 'remix', text: 'Remixing allowed' },
-      { key: 'royalty', text: 'No royalty sharing' },
-      { key: 'ai', text: 'AI training allowed' }
-    ],
-    summary: 'Open Domain is a public dedication tool, which enables creators to give up their copyright and put their works into the worldwide public domain. Reusers can distribute, remix, adapt, and build upon the asset in any medium or format, with no conditions.'
-  },
-  {
-    id: 'non-commercial',
-    title: 'Non-Commercial Remix',
-    description: 'Allow non-commercial use with remixing',
-    terms: [
-      { key: 'attribution', text: 'Attribution is required' },
-      { key: 'commercial', text: 'Commercial use not allowed' },
-      { key: 'remix', text: 'Remixing allowed' },
-      { key: 'royalty', text: 'No royalty sharing' },
-      { key: 'ai', text: 'AI training limited' }
-    ],
-    summary: 'This license allows reusers to distribute, remix, adapt, and build upon the material in any medium or format for noncommercial purposes only, and only so long as attribution is given to the creator.'
-  },
-  {
-    id: 'commercial',
-    title: 'Commercial Use',
-    description: 'Allow commercial use with attribution',
-    terms: [
-      { key: 'attribution', text: 'Attribution is required' },
-      { key: 'commercial', text: 'Commercial use allowed' },
-      { key: 'remix', text: 'Remixing not allowed' },
-      { key: 'royalty', text: 'Royalty sharing required' },
-      { key: 'ai', text: 'AI training not allowed' }
-    ],
-    summary: 'This license allows reusers to distribute, remix, adapt, and build upon the material in any medium or format, so long as attribution is given to the creator. The license allows for commercial use.'
-  },
-  {
-    id: 'commercial-remix',
-    title: 'Commercial Remix',
-    description: 'Allow commercial use with remixing and attribution',
-    terms: [
-      { key: 'attribution', text: 'Attribution is required' },
-      { key: 'commercial', text: 'Commercial use allowed' },
-      { key: 'remix', text: 'Remixing allowed' },
-      { key: 'royalty', text: 'Royalty sharing required' },
-      { key: 'ai', text: 'AI training allowed with limitations' }
-    ],
-    summary: 'This license allows reusers to distribute, remix, adapt, and build upon the material in any medium or format, even commercially. The license allows for commercial use, remixing and adaptation, as long as attribution is provided to the original creator.'
-  }
-];
-
 // 打开许可证详情弹窗
-const openLicenseDetailModal = (licenseId: string) => {
-  const license = licenseTypes.find(l => l.id === licenseId);
-  if (license) {
-    currentLicenseDetail.value = {
-      title: license.title,
-      summary: license.summary,
-      terms: license.terms
-    };
-    showLicenseDetailModal.value = true;
-  }
-}
+const openLicenseDetail = (license: string) => {
+  const licenseDetails = {
+    'open': {
+      name: '开放使用',
+      summary: '开放域是一种公共贡献工具，它允许创作者放弃版权，将作品放入全球公共域。使用者可以在任何媒介或格式中分发、混音、改编和构建作品，无需任何条件。'
+    },
+    'non-commercial': {
+      name: '非商业混音',
+      summary: '任何人都可以使用您的作品创建非商业项目。他们可以修改、调整和构建您的作品，但必须标明原创者，且不能将作品用于商业目的。'
+    },
+    'commercial': {
+      name: '商业使用',
+      summary: '允许他人按照您设定的经济条款使用您的作品。使用者必须支付许可费和/或版税，但不允许对您的作品进行修改或创建衍生作品。'
+    },
+    'commercial-remix': {
+      name: '商业混音',
+      summary: '允许他们混音您的作品，同时您获得认可和收益。使用者可以修改和构建您的作品，但必须支付许可费和/或版税，同时标明您是原创者。'
+    }
+  };
+  
+  currentLicenseDetail.value = {
+    license,
+    name: licenseDetails[license as keyof typeof licenseDetails].name,
+    summary: licenseDetails[license as keyof typeof licenseDetails].summary
+  };
+  
+  showLicenseDetailModal.value = true;
+};
 
 // 关闭许可证详情弹窗
 const closeLicenseDetailModal = () => {
   showLicenseDetailModal.value = false;
-}
+};
 
-.licenses-section {
-  position: relative;
-  overflow: visible;
-}
-
-.licenses-section.has-modal .licenses-list {
-  position: relative;
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-.license-detail-modal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: calc(100% - 40px);
-  max-width: 380px;
-  min-height: 300px;
-  background-color: #1E1E1E;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-}
-
-.license-detail-content {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  height: 100%;
-  width: 100%;
-}
-
-.license-detail-header {
-  position: relative;
-  padding: 25px 30px 15px 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.license-ip-logo {
-  margin-bottom: 5px;
-}
-
-.license-detail-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 5px;
-}
-
-.license-detail-icons {
-  display: flex;
-  gap: 15px;
-  margin-top: 5px;
-}
-
-.detail-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.detail-icon:hover {
-  opacity: 0.8;
-}
-
-.close-detail-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 25px;
-  height: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-}
-
-.close-detail-btn:hover {
-  opacity: 1;
-}
-
-.license-detail-body {
-  padding: 0 30px 20px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.license-summary-section,
-.license-terms-section {
-  margin-bottom: 25px;
-}
-
-.license-summary-section h3,
-.license-terms-section h3 {
-  font-size: 16px;
-  font-weight: 500;
-  color: white;
-  opacity: 0.6;
-  margin-bottom: 15px;
-}
-
-.license-summary-section p {
-  color: white;
-  line-height: 1.6;
-  font-size: 15px;
-}
-
-.license-terms-list {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.license-term-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.term-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-}
-
-.term-text {
-  color: white;
-  font-size: 15px;
-}
-
-.license-detail-footer {
-  padding: 20px 30px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  justify-content: center;
-}
-
-.view-legal-btn {
-  background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  border-radius: 30px;
-  padding: 12px 24px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.view-legal-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-}
+// 更新license-search-btn点击事件
+const handleLicenseSearch = (license: string) => {
+  openLicenseDetail(license);
+};
 </script>
 
 <style scoped>
@@ -2375,12 +2444,13 @@ h1 {
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   padding: 0;
   position: relative;
-  overflow: visible; /* 允许内容溢出 */
+  overflow: hidden; /* 改为hidden以控制内容 */
   display: flex;
   flex-direction: column;
   box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
+  box-sizing: border-box; /* 确保padding不会增加卡片宽度 */
 }
 
 .license-card:hover {
@@ -2426,22 +2496,31 @@ h1 {
   margin-top: auto;
   display: flex;
   justify-content: space-between;
+  align-items: center; /* 确保垂直居中 */
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 15px 24px;
+  padding: 15px 16px; /* 减小水平内边距 */
+  width: 100%; /* 确保宽度撑满 */
+  box-sizing: border-box; /* 确保padding不会增加宽度 */
+  flex-wrap: nowrap; /* 防止元素换行 */
+  min-height: 54px; /* 确保足够的高度 */
 }
 
 .license-icons {
   display: flex;
-  gap: 18px;
+  gap: 10px; /* 更小的图标间距 */
+  flex-wrap: nowrap; /* 防止图标换行 */
+  max-width: calc(100% - 40px); /* 留出空间给检查指示器 */
 }
 
 .icon {
-  width: 24px;
-  height: 24px;
+  width: 22px; /* 稍微减小图标尺寸 */
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0.6;
+  flex-shrink: 0; /* 防止图标缩小 */
+  font-size: 14px; /* 减小图标字体大小 */
 }
 
 .check-indicator {
@@ -2640,11 +2719,22 @@ h1 {
   }
   
   .license-footer {
-    padding: 12px 16px;
+    padding: 12px 14px; /* 进一步减小内边距 */
   }
   
   .license-description-zh {
     font-size: 14px;
+  }
+  
+  /* 增加小屏幕下的图标处理 */
+  .license-icons {
+    gap: 10px; /* 在小屏幕上进一步减小图标间距 */
+  }
+  
+  .icon {
+    width: 20px; /* 稍微减小图标尺寸 */
+    height: 20px;
+    font-size: 12px; /* 减小图标字体大小 */
   }
 }
 
@@ -4003,1697 +4093,6 @@ h1 {
 }
 
 .fee-label {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 6px;
-}
-
-.fee-input-wrapper {
-  display: flex;
-  align-items: center;
-  background-color: rgba(30, 30, 35, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.fee-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: white;
-  padding: 10px 12px;
-  font-size: 16px;
-  outline: none;
-}
-
-.fee-currency {
-  padding: 10px 12px;
-  background-color: rgba(0, 0, 0, 0.2);
-  font-size: 14px;
-  color: #bbb;
-}
-
-.expiration-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  width: 100%;
-}
-
-.expiration-btn {
-  width: 100%;
-  text-align: center;
-}
-
-.question-title {
-  text-align: center;
-  font-size: 18px;
-  font-weight: 500;
-  margin: 15px 0;
-  color: #ffffff;
-  background-color: #1e1e1e;
-  padding: 10px;
-  border-radius: 4px;
-  width: 100%;
-}
-
-.start-container {
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #3a3a3a;
-  color: white;
-  position: relative;
-  overflow: hidden;
-  padding: 20px;
-}
-
-.card-container {
-  display: flex;
-  gap: 20px;
-  margin-top: 40px;
-  justify-content: center;
-  z-index: 1;
-  background-color: rgba(80, 80, 80, 0.25);
-  border-radius: 20px;
-  padding: 50px;
-  backdrop-filter: blur(5px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.menu-title {
-  display: none;
-}
-
-@media (max-width: 900px) {
-  .menu-options {
-    flex-direction: column;
-    gap: 30px;
-    margin-top: 40px;
-  }
-  
-  .menu-card {
-    width: 180px;
-    height: 200px;
-    margin: 0;
-    transform: rotate(0deg) !important;
-    background: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.15));
-  }
-  
-  .menu-options:hover .menu-card {
-    margin: 0;
-    box-shadow: 0 25px 25px rgba(0, 0, 0, 0.35);
-  }
-  
-  .menu-card:hover {
-    transform: translateY(-5px) !important; /* Reduced lift effect on mobile */
-  }
-}
-
-/* 作品类型选择页面样式 */
-.work-type-container {
-  width: 100%;
-  height: 100%;
-  padding: 70px 70px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background-color: #303030;
-}
-
-.title-with-subtitle {
-  font-size: 27px;
-  margin: 0 0 8px 0;
-  font-weight: 600;
-  text-align: center;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.subtitle-zh {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 50px 0;
-  font-weight: normal;
-  text-align: center;
-}
-
-.work-type-options {
-  margin-top: 20px;
-  display: flex;
-  gap: 40px;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.work-type-card {
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(rgba(60, 60, 60, 0.8), rgba(40, 40, 40, 0.7));
-  border-radius: 12px;
-  padding: 0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(100, 100, 100, 0.35);
-  width: calc(50% - 15px);
-  overflow: hidden;
-  backdrop-filter: blur(15px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-  height: 180px;
-  position: relative;
-}
-
-.work-type-content {
-  padding: 30px 35px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  height: 100%;
-}
-
-.work-type-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 22px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
-}
-
-.work-type-content h2 {
-  font-size: 22px;
-  margin: 0 0 8px 0;
-  display: flex;
-  align-items: center;
-  color: #ffffff;
-}
-
-.work-description {
-  margin: 5px 0 0 0;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-.navigation {
-  margin-top: 60px;
-  display: flex;
-  justify-content: space-between;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-  padding-top: 40px;
-}
-
-.back-btn, .next-btn {
-  padding: 12px 25px;
-  border-radius: 30px;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.3s;
-}
-
-/* License card styles */
-.license-card::after {
-  content: '添加此许可证 →';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 34px;
-  background-color: #000;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 400;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-  letter-spacing: 0.2px;
-}
-
-.license-card:hover::after {
-  opacity: 1;
-}
-
-.license-card.selected::after {
-  content: '移除此许可证 ×';
-  background-color: #1a1a1a;
-}
-
-.license-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 15px;
-  font-size: 12px;
-  font-weight: 400;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-}
-
-.license-tag:hover {
-  background-color: rgba(30, 30, 30, 0.8);
-}
-
-.license-tag.blue {
-  background-color: rgba(0, 0, 0, 0.7);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.license-tag.purple {
-  background-color: rgba(0, 0, 0, 0.7);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.license-tag.green {
-  background-color: rgba(0, 0, 0, 0.7);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.license-tag.red {
-  background-color: rgba(0, 0, 0, 0.7);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.license-icon {
-  margin-right: 6px;
-  font-style: normal;
-}
-
-.work-type-card:hover {
-  background: linear-gradient(rgba(70, 70, 70, 0.85), rgba(50, 50, 50, 0.75));
-  transform: translateY(-8px);
-  box-shadow: 0 30px 30px rgba(0, 0, 0, 0.4);
-  border-color: rgba(150, 150, 150, 0.5);
-}
-
-.work-type-card.selected {
-  border: 1px solid rgba(150, 150, 150, 0.7);
-  background: linear-gradient(rgba(80, 80, 80, 0.9), rgba(60, 60, 60, 0.8));
-  transform: translateY(-8px);
-  box-shadow: 0 30px 35px rgba(0, 0, 0, 0.4);
-}
-
-.work-type-icon.new-icon {
-  background-color: #000000;
-}
-
-.work-type-icon.remix-icon {
-  background-color: #000000;
-}
-
-.type-label {
-  font-size: 12px;
-  background-color: rgba(50, 50, 50, 0.6);
-  padding: 3px 8px;
-  border-radius: 15px;
-  margin-left: 10px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.asset-type-icon svg {
-  width: 40px;
-  height: 40px;
-  fill: white;
-  opacity: 0.9;
-}
-
-.asset-type-card.selected .asset-type-icon svg {
-  fill: white;
-  opacity: 1;
-}
-
-.placeholder-icon {
-  display: none;
-}
-
-.asset-type-icon {
-  display: none;
-}
-
-.asset-type-icon-container {
-  display: none;
-}
-
-.empty-upload-icon {
-  width: 24px;
-  height: 24px;
-  margin: 0 10px;
-  display: inline-block;
-}
-
-.audio-placeholder {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: rgba(100, 100, 255, 0.2);
-  margin-bottom: 10px;
-}
-
-.document-placeholder {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
-  background-color: rgba(100, 200, 100, 0.2);
-  margin-bottom: 10px;
-}
-
-.type-icon-placeholder {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.7;
-}
-
-.asset-type-card.selected .monitor-svg,
-.asset-type-card:hover .monitor-svg {
-  opacity: 1;
-}
-
-.asset-type-card.selected .type-icon-placeholder,
-.asset-type-card:hover .type-icon-placeholder {
-  opacity: 1;
-}
-
-.asset-type-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 20px 15px;
-}
-
-.monitor-svg {
-  width: 100%;
-  height: 100%;
-  max-width: 80px;
-  max-height: 80px;
-  fill: #ffffff;
-  opacity: 0.9;
-  margin-bottom: 8px;
-}
-
-#picture.monitor-svg {
-  max-width: 88px;
-  max-height: 88px;
-}
-
-.monitor-svg path,
-.monitor-svg polygon {
-  fill: #ffffff;
-}
-
-.asset-type-card.selected .monitor-svg {
-  opacity: 1;
-}
-
-.asset-type-card.selected .monitor-svg path,
-.asset-type-card.selected .monitor-svg polygon {
-  fill: #ffffff;
-}
-
-.type-icon-placeholder {
-  width: 50px;
-  height: 50px;
-  margin-bottom: 15px;
-  opacity: 0.7;
-}
-
-.asset-type-name {
-  font-size: 13px;
-  margin: 0;
-  text-align: center;
-  opacity: 0.85;
-}
-
-.asset-type-card.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  filter: grayscale(1);
-  pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.asset-type-card.disabled .monitor-svg {
-  opacity: 0.4;
-}
-
-.asset-type-card.disabled .asset-type-name {
-  opacity: 0.5;
-}
-
-/* Remove the unused styles */
-
-/* Error message styles */
-.file-type-error {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: rgba(200, 0, 0, 0.85);
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  max-width: 350px;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.error-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.error-icon {
-  font-size: 18px;
-}
-
-.error-message {
-  font-size: 14px;
-  flex: 1;
-  color: white;
-}
-
-.error-close {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-.error-close:hover {
-  opacity: 1;
-}
-
-/* Add to style section */
-.upload-type-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(0, 0, 0, 0.15);
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-top: 8px;
-  border-left: 3px solid rgba(0, 0, 0, 0.7);
-}
-
-.info-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.info-icon svg {
-  width: 18px;
-  height: 18px;
-  margin-right: 4px;
-}
-
-.selected-licenses-header {
-  grid-column: span 2; /* 跨两列显示 */
-  margin-bottom: 20px;
-  background: rgba(40, 40, 45, 0.5);
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  width: 100%;
-}
-
-.selected-licenses-header h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 18px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.license-count {
-  background: rgba(0, 0, 0, 0.5);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 14px;
-}
-
-.selected-licenses-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.selected-license-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  width: 100%;
-}
-
-.selected-license-tag {
-  background: rgba(70, 70, 75, 0.6);
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 14px;
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.remove-tag {
-  cursor: pointer;
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.7);
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.2);
-  margin-left: 5px;
-  transition: all 0.2s;
-}
-
-.remove-tag:hover {
-  background: rgba(0, 0, 0, 0.4);
-  color: white;
-}
-
-.no-licenses {
-  color: rgba(255, 255, 255, 0.5);
-  font-style: italic;
-  font-size: 14px;
-  padding: 5px 0;
-  width: 100%;
-  text-align: center;
-}
-
-/* 许可证标签样式 */
-.license-tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  gap: 4px;
-}
-
-.license-tag.blue {
-  background-color: rgba(0, 122, 255, 0.15);
-  color: #0077ff;
-}
-
-.license-tag.purple {
-  background-color: rgba(175, 82, 222, 0.15);
-  color: #af52de;
-}
-
-.license-tag.green {
-  background-color: rgba(52, 199, 89, 0.15);
-  color: #34c759;
-}
-
-.license-tag.red {
-  background-color: rgba(255, 59, 48, 0.15);
-  color: #ff3b30;
-}
-
-.license-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-style: normal;
-}
-
-/* 许可证冲突弹窗样式 */
-.license-conflict-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
-  animation: modalFadeIn 0.3s ease;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.modal-content {
-  background-color: #212121;
-  border-radius: 16px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-  max-width: 550px;
-  width: 90%;
-  overflow: hidden;
-  transform: translateY(0);
-  animation: modalSlideIn 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-@keyframes modalSlideIn {
-  from {
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(40, 40, 45, 0.6);
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.close-btn {
-  font-size: 28px;
-  font-weight: 300;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.6);
-  transition: color 0.2s;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-
-.close-btn:hover {
-  color: white;
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.modal-body {
-  padding: 24px;
-  color: #f5f5f5;
-}
-
-.conflict-icon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.conflict-info {
-  margin-bottom: 30px;
-}
-
-.conflict-title {
-  font-size: 16px;
-  font-weight: 500;
-  margin: 15px 0 8px;
-}
-
-.conflict-license {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 12px 16px;
-  background-color: rgba(60, 60, 65, 0.5);
-  border-radius: 8px;
-  margin-bottom: 15px;
-}
-
-.conflict-license.new-license {
-  border-left: 3px solid #000000;
-}
-
-.conflict-license.existing-license {
-  border-left: 3px solid #000000;
-}
-
-.conflict-reason {
-  font-size: 15px;
-  line-height: 1.5;
-  background-color: rgba(60, 60, 65, 0.5);
-  padding: 12px 16px;
-  border-radius: 8px;
-  border-left: 3px solid #000000;
-}
-
-.reason-label {
-  font-weight: 500;
-  margin-right: 6px;
-}
-
-.valid-combinations {
-  background-color: rgba(40, 40, 45, 0.5);
-  border-radius: 12px;
-  padding: 16px;
-  margin-top: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.valid-combinations h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 500;
-  text-align: center;
-  color: #ffffff;
-}
-
-.combination {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 15px;
-}
-
-.combination:last-child {
-  margin-bottom: 0;
-}
-
-.combination-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.plus-sign {
-  font-size: 18px;
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.modal-footer {
-  padding: 16px 24px;
-  display: flex;
-  justify-content: flex-end;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(40, 40, 45, 0.6);
-}
-
-.modal-btn {
-  padding: 10px 24px;
-  border-radius: 30px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  transition: all 0.2s;
-  border: none;
-  outline: none;
-}
-
-.cancel-btn {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.cancel-btn:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-}
-
-.combination-note {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-left: 5px;
-}
-
-/* AI权限设置页面样式 */
-.ai-permissions-container {
-  width: 100%;
-  height: 100%;
-  padding: 40px 50px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  background-color: #212121;
-  color: white;
-}
-
-.ai-permissions-header {
-  margin-bottom: 32px;
-  flex-shrink: 0;
-  text-align: left;
-}
-
-h1.ai-title-main {
-  font-size: 34px;
-  margin: 0 0 12px 0;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-}
-
-.ai-subtitle {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.ai-card {
-  background-color: rgba(35, 35, 40, 0.5);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(60, 60, 65, 0.3);
-  max-width: 700px;
-}
-
-.ai-card-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.ai-card-text {
-  flex: 1;
-}
-
-.ai-card-title {
-  font-size: 18px;
-  font-weight: 500;
-  color: white;
-}
-
-.simple-switch {
-  position: relative;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.switch-track {
-  width: 48px;
-  height: 28px;
-  border-radius: 14px;
-  background-color: rgba(50, 50, 50, 0.7);
-  transition: background-color 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  position: relative;
-}
-
-.switch-track.active {
-  background-color: #00e676;
-  border-color: rgba(0, 230, 118, 0.5);
-}
-
-.switch-indicator {
-  width: 20px;
-  height: 20px;
-  background-color: white;
-  border-radius: 50%;
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  transition: transform 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.switch-track.active .switch-indicator {
-  transform: translateX(20px);
-}
-
-.ai-navigation {
-  margin-top: auto;
-  display: flex;
-  justify-content: space-between;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-  padding-top: 40px;
-}
-
-.ai-back-btn, .ai-next-btn {
-  padding: 12px 25px;
-  border-radius: 30px;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.3s;
-}
-
-.ai-back-btn {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.ai-back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.ai-next-btn {
-  background: white;
-  color: #222;
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
-}
-
-.ai-next-btn:hover {
-  background: #f0f0f0;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-}
-
-.license-tag.blue svg path,
-.license-tag.blue svg polygon,
-.ai-card-icon svg path,
-.ai-card-icon svg polygon {
-  fill: white;
-}
-
-.license-icon {
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(50, 50, 50, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: .3s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 2px;
-  background-color: white;
-  transition: .3s;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-input:checked + .slider {
-  background-color: #00e676;
-  border-color: rgba(0, 230, 118, 0.5);
-}
-
-input:checked + .slider:before {
-  transform: translateX(20px);
-}
-
-.slider.round {
-  border-radius: 12px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-/* From Uiverse.io by vinodjangid07 */
-/* To hide the checkbox */
-#aiTrainingCheckbox {
-  display: none;
-}
-
-.toggleSwitch {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 50px;
-  height: 17px;
-  background-color: rgb(82, 82, 82);
-  border-radius: 20px;
-  cursor: pointer;
-  transition-duration: .2s;
-}
-
-.toggleSwitch::after {
-  content: "";
-  position: absolute;
-  height: 22px;
-  width: 22px;
-  left: 0px;
-  background-color: rgb(41, 41, 41);
-  border-radius: 50%;
-  transition-duration: .2s;
-  border: 2px solid rgb(82, 82, 82);
-}
-
-#checkboxInput:checked+.toggleSwitch::after {
-  transform: translateX(100%);
-  transition-duration: .2s;
-  border: 2px solid rgb(165, 255, 105);
-}
-
-/* Switch background change */
-#checkboxInput:checked+.toggleSwitch {
-  background-color: rgb(165, 255, 105);
-  transition-duration: .2s;
-}
-
-.new-toggle-container {
-  margin-right: 5px;
-}
-
-.new-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 46px;
-  height: 28px;
-  background-color: #2B2C30;
-  border-radius: 30px;
-  cursor: pointer;
-  transition-duration: .2s;
-  border: 1px solid #333;
-}
-
-.new-toggle.active {
-  background-color: #00E676;
-  border-color: #00B259;
-}
-
-.new-toggle-circle {
-  position: absolute;
-  height: 22px;
-  width: 22px;
-  left: 3px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: #444;
-  border-radius: 50%;
-  transition-duration: .2s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-.new-toggle.active .new-toggle-circle {
-  transform: translate(19px, -50%);
-  background-color: white;
-}
-
-.ai-card-icon {
-  margin-right: 8px;
-}
-
-/* 审核与注册页面样式 */
-.review-register-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  background-color: #121212;
-  color: white;
-  padding: 0;
-}
-
-.review-content {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.close-review-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  z-index: 10;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.close-review-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.review-header {
-  padding: 30px 40px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.review-header h1 {
-  font-size: 32px;
-  margin: 0 0 8px 0;
-  font-weight: 600;
-}
-
-.review-subtitle {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0;
-}
-
-.review-sections {
-  flex: 1;
-  padding: 0;
-  overflow: auto;
-}
-
-.sections-container {
-  padding: 20px 40px;
-  display: flex;
-  flex-direction: column;
-}
-
-.review-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.section-title {
-  font-size: 18px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0;
-}
-
-.licenses-header-row {
-  margin-top: 30px;
-}
-
-.asset-section {
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.asset-preview-card {
-  background-color: #212121;
-  border-radius: 10px;
-  overflow: hidden;
-  width: 280px;
-  flex: 0 0 auto;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(50, 50, 50, 0.8);
-}
-
-.add-license-btn {
-  padding: 6px 14px;
-  border-radius: 5px;
-  background-color: #333;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.add-license-btn:hover {
-  background-color: #444;
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.licenses-section {
-  margin-bottom: 20px;
-}
-
-.review-actions {
-  padding: 20px 40px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.back-review-btn {
-  padding: 12px 25px;
-  border-radius: 50px;
-  background-color: transparent;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.back-review-btn:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
-}
-
-.register-btn {
-  padding: 12px 30px;
-  border-radius: 50px;
-  background: linear-gradient(to right, #4a36e0, #9039b5);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 4px 15px rgba(74, 54, 224, 0.3);
-  transition: all 0.2s;
-}
-
-.register-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(74, 54, 224, 0.4);
-}
-
-.no-licenses-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 20px;
-  color: rgba(255, 255, 255, 0.5);
-  font-style: italic;
-  font-size: 14px;
-}
-
-/* 新增的缩略图样式 */
-.main-preview {
-  width: 100%;
-  height: 180px;
-  overflow: hidden;
-  background-color: #333;
-  margin-bottom: 4px;
-}
-
-.thumbnails-row {
-  display: flex;
-  height: 36px;
-  gap: 4px;
-  overflow: hidden;
-}
-
-.thumbnail-item {
-  width: 36px;
-  height: 36px;
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-  background-color: #252525;
-}
-
-.thumbnail-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.thumbnail-video,
-.thumbnail-audio,
-.thumbnail-file {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.more-thumbnails {
-  width: 36px;
-  height: 36px;
-  border-radius: 4px;
-  background-color: rgba(60, 60, 60, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: white;
-}
-
-/* 文件展示样式 */
-.files-gallery {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 15px;
-  background-color: #1a1a1a;
-}
-
-.gallery-item {
-  display: flex;
-  flex-direction: column;
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.gallery-image-container, 
-.gallery-video-container {
-  width: 100%;
-  height: 180px;
-  background-color: #222;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gallery-image, .gallery-video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.gallery-audio-container, 
-.gallery-file-container {
-  width: 100%;
-  height: 100px;
-  background-color: #252525;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-}
-
-.audio-info-display {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.audio-icon-large, .file-icon-large {
-  font-size: 36px;
-  margin-right: 15px;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.audio-details-display {
-  flex: 1;
-}
-
-.audio-name, .file-name {
-  font-size: 16px;
-  margin-bottom: 5px;
-  color: white;
-  font-weight: 500;
-}
-
-.audio-format-duration {
-  display: flex;
-  gap: 15px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.gallery-item-info {
-  padding: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.file-number {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 5px;
-}
-
-.file-name-display {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.file-type-display {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.no-files-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 250px;
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-}
-
-.placeholder-icon {
-  font-size: 48px;
-  color: rgba(255, 255, 255, 0.3);
-  margin-bottom: 15px;
-}
-
-.placeholder-text {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* 资产预览卡样式 */
-.asset-preview-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  border-color: rgba(70, 70, 70, 0.8);
-}
-
-.asset-image-container {
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  background-color: #333;
-  position: relative;
-}
-
-.asset-preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.asset-preview-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.asset-preview-audio, .asset-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #333;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 40px;
-}
-
-.asset-preview-info {
-  padding: 15px;
-}
-
-.asset-source {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 5px;
-}
-
-.asset-name {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 5px;
-  color: white;
-}
-
-.asset-owner {
-  display: flex;
-  align-items: center;
-  margin-top: 5px;
-  justify-content: flex-start;
-  gap: 8px;
-}
-
-.asset-owner-label {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.avatar-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 0, 0.2);
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-}
-
-.owner-icon {
-  color: yellow;
-  font-size: 10px;
-}
-
-/* 许可证列表样式 */
-.licenses-list {
-  background-color: #212121;
-  border-radius: 10px;
-  overflow: hidden;
-  min-height: 100px;
-  border: 1px solid rgba(50, 50, 50, 0.8);
-}
-
-.license-item {
-  padding: 16px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: background-color 0.2s;
-}
-
-.license-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.license-item:last-child {
-  border-bottom: none;
-}
-
-.license-item-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.license-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.license-name {
-  font-size: 15px;
-  color: white;
-}
-
-.license-actions {
-  display: flex;
-  align-items: center;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.license-item:hover .license-actions {
-  opacity: 1;
-}
-
-.license-search-btn, .license-delete-btn {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  margin-left: 5px;
-  border-radius: 50%;
 <template>
   <div class="app-container">
     <div class="blur-container">
@@ -5829,7 +4228,7 @@ input:checked + .slider:before {
             @click="selectLicense('open')"
           >
             <div class="license-header">
-              <span class="license-tag blue" @click.stop="openLicenseDetailModal('open')">
+              <span class="license-tag blue">
                 <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" id="ai" width="20" height="20" enable-background="new 0 0 48 48" version="1.1" viewBox="0 0 48 48" class="license-icon">
                   <g>
                     <path d="M26.2,32.5l-1.5-3.4h-6.6l-1.5,3.4h-3.7l6.8-15.7h3.4l6.8,15.7H26.2z M34.8,32.5h-3.4V20.4h3.4V32.5z M34.5,18.9c-0.4,0.4-0.9,0.6-1.4,0.6c-0.6,0-1-0.2-1.4-0.6c-0.4-0.4-0.6-0.9-0.6-1.4c0-0.6,0.2-1,0.6-1.4c0.4-0.4,0.9-0.6,1.4-0.6c0.6,0,1,0.2,1.4,0.6c0.4,0.4,0.6,0.9,0.6,1.4C35.1,18,34.9,18.5,34.5,18.9z"></path>
@@ -5843,8 +4242,8 @@ input:checked + .slider:before {
             <div class="license-content">
               <p class="license-description-zh">免费分发和混音，无限制、无收入要求、无归属要求</p>
             </div>
-            <div class="license-footer">
-              <div class="license-icons">
+            <div class="license-footer license-footer-open">
+              <div class="license-icons license-icons-open">
                 <span class="icon" title="提供文档">📄</span>
                 <span class="icon" title="无需付费">$</span>
                 <span class="icon" title="允许混音">↩️</span>
@@ -5861,14 +4260,14 @@ input:checked + .slider:before {
             @click="selectLicense('non-commercial')"
           >
             <div class="license-header">
-              <span class="license-tag purple" @click.stop="openLicenseDetailModal('non-commercial')"><i class="license-icon">🏆</i> 为您的作品获得认可</span>
+              <span class="license-tag purple"><i class="license-icon">🏆</i> 为您的作品获得认可</span>
             </div>
             <h2>非商业混音</h2>
             <div class="license-content">
               <p class="license-description-zh">任何人都可使用您的作品创建非商业项目</p>
             </div>
-            <div class="license-footer">
-              <div class="license-icons">
+            <div class="license-footer license-footer-noncommercial">
+              <div class="license-icons license-icons-noncommercial">
                 <span class="icon" title="提供文档">📄</span>
                 <span class="icon" title="无需付费">$</span>
                 <span class="icon" title="允许混音">↩️</span>
@@ -5885,14 +4284,14 @@ input:checked + .slider:before {
             @click="selectLicense('commercial')"
           >
             <div class="license-header">
-              <span class="license-tag green" @click.stop="openLicenseDetailModal('commercial')"><i class="license-icon">💲</i> 为您的作品获得报酬</span>
+              <span class="license-tag green"><i class="license-icon">💲</i> 为您的作品获得报酬</span>
             </div>
             <h2>商业使用</h2>
             <div class="license-content">
               <p class="license-description-zh">允许他人按照您设定的经济条款使用您的作品</p>
             </div>
-            <div class="license-footer">
-              <div class="license-icons">
+            <div class="license-footer license-footer-commercial">
+              <div class="license-icons license-icons-commercial">
                 <span class="icon" title="提供文档">📄</span>
                 <span class="icon" title="需要付费">$</span>
                 <span class="icon" title="限制混音">↩️</span>
@@ -5909,14 +4308,14 @@ input:checked + .slider:before {
             @click="selectLicense('commercial-remix')"
           >
             <div class="license-header">
-              <span class="license-tag red" @click.stop="openLicenseDetailModal('commercial-remix')"><i class="license-icon">💰</i> 获得报酬与认可</span>
+              <span class="license-tag red"><i class="license-icon">💰</i> 获得报酬与认可</span>
             </div>
             <h2>商业混音</h2>
             <div class="license-content">
               <p class="license-description-zh">允许他人混音您的作品，同时您获得认可和收益</p>
             </div>
-            <div class="license-footer">
-              <div class="license-icons">
+            <div class="license-footer license-footer-commercial-remix">
+              <div class="license-icons license-icons-commercial-remix">
                 <span class="icon" title="提供文档">📄</span>
                 <span class="icon" title="需要付费">$</span>
                 <span class="icon" title="允许混音">↩️</span>
@@ -6632,88 +5031,292 @@ input:checked + .slider:before {
                 <button class="add-license-btn" @click="goToLicense">添加许可证</button>
               </div>
               
-              <div class="licenses-section" :class="{ 'has-modal': showLicenseDetailModal }">
-                <!-- 许可证详情弹窗 -->
-                <div v-if="showLicenseDetailModal" class="license-detail-modal">
-                  <div class="license-detail-content">
-                    <!-- Modal content here... -->
-                    <div class="license-detail-header">
-                      <div class="license-ip-logo">
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M30 55C43.8071 55 55 43.8071 55 30C55 16.1929 43.8071 5 30 5C16.1929 5 5 16.1929 5 30C5 43.8071 16.1929 55 30 55Z" stroke="white" stroke-width="2"/>
-                          <path d="M20.9091 36V24.7273H25.0682C26.0152 24.7273 26.8106 24.8864 27.4545 25.2045C28.0985 25.5227 28.5833 25.9716 28.9091 26.5511C29.2348 27.1307 29.3977 27.8144 29.3977 28.6023C29.3977 29.3977 29.2311 30.0871 28.8977 30.6705C28.5644 31.2538 28.0644 31.7045 27.3977 32.0227C26.7311 32.3409 25.9053 32.5 24.9205 32.5H22.5455V30.5682H24.4773C25.0152 30.5682 25.4508 30.4962 25.7841 30.3523C26.1174 30.2083 26.3636 29.9924 26.5227 29.7045C26.6818 29.4167 26.7614 29.0492 26.7614 28.6023C26.7614 28.1553 26.6818 27.7841 26.5227 27.4886C26.3636 27.1932 26.1174 26.9716 25.7841 26.8239C25.4508 26.6761 25.0152 26.6023 24.4773 26.6023H23.4773V36H20.9091Z" fill="white"/>
-                        <path d="M36.8636 24.7273V36H34.3295V24.7273H36.8636Z" fill="white"/>
-                      </svg>
+              <div class="licenses-section">
+                <div class="licenses-list">
+                  <div v-for="license in selectedLicenses" :key="license" class="license-item">
+                    <div class="license-item-content">
+                      <div class="license-info">
+                        <span class="license-name">{{ getLicenseName(license) }}</span>
+                      </div>
+                      <div class="license-actions">
+                        <button class="license-search-btn" @click="handleLicenseSearch(license)">
+                          <span class="search-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" x="0" y="0" version="1.1" viewBox="0 0 29 29" width="16" height="16">
+                              <circle cx="11.854" cy="11.854" r="9" style="fill:none;stroke:#fff;stroke-width:2;stroke-miterlimit:10"></circle>
+                              <path d="M18.451 18.451l7.695 7.695" style="fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"></path>
+                            </svg>
+                          </span>
+                        </button>
+                        <button class="license-delete-btn" @click="removeLicense(license)">
+                          <span class="delete-icon">×</span>
+                        </button>
+                      </div>
                     </div>
-                    <div class="license-detail-title">{{ currentLicenseDetail.title }}</div>
-                    <!-- License icons -->
-                    <div class="license-detail-icons">
-                      <span class="detail-icon">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="6" cy="6" r="5.5" stroke="white"/>
-                        </svg>
-                      </span>
-                      <span class="detail-icon">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M11 6.5C11 5.11929 8.76142 4 6 4C3.23858 4 1 5.11929 1 6.5C1 7.88071 3.23858 9 6 9C8.76142 9 11 7.88071 11 6.5Z" stroke="white"/>
-                          <circle cx="6" cy="5.5" r="2.5" stroke="white"/>
-                        </svg>
-                      </span>
-                      <span class="detail-icon">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M6 1V9M1 6L6 11L11 6" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                      <span class="detail-icon">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M6 11C8.76142 11 11 8.76142 11 6C11 3.23858 8.76142 1 6 1C3.23858 1 1 3.23858 1 6C1 8.76142 3.23858 11 6 11Z" stroke="white"/>
-                          <path d="M3 7L5 8.5L9 4.5" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                    <button class="close-detail-btn" @click="closeLicenseDetailModal">×</button>
                   </div>
-
-                  <div class="license-detail-body">
-                    <div class="license-summary-section">
-                      <h3>License Summary</h3>
-                      <p>{{ currentLicenseDetail.summary }}</p>
-                    </div>
-
-                    <div class="license-terms-section">
-                      <h3>License Terms</h3>
-                      <div class="license-terms-list">
-                        <div v-for="(term, index) in currentLicenseDetail.terms" :key="index" class="license-term-item">
-                          <div class="term-icon" :class="term.key">
-                  <svg v-if="term.key === 'attribution'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM11 8H13V10H11V8ZM11 11H13V16H11V11Z" fill="white"/>
-                  </svg>
-                  <svg v-else-if="term.key === 'commercial'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" fill="white"/>
-                  </svg>
-                  <svg v-else-if="term.key === 'remix'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z" fill="white"/>
-                  </svg>
-                  <svg v-else-if="term.key === 'royalty'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 9h-6V7H7v2H3v9h18V9h-6Zm-8 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm10 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="white"/>
-                  </svg>
-                  <svg v-else-if="term.key === 'ai'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7.5 4A5.5 5.5 0 0 0 2 9.5c0 .5.09 1 .22 1.5H6.3l1.94-3.89c.54-1.08 2.08-1.08 2.62 0l3.33 6.67 1.34-2.67c.27-.54.82-.89 1.41-.89H19v-1.5A5.5 5.5 0 0 0 13.5 4h-6M3.81 13c1.09 1.97 3.28 3 5.69 3h6c2.41 0 4.6-1.03 5.69-3h-4.13L15.41 16c-.38.77-1.51.77-1.89 0l-3.33-6.67-1.95 3.89c-.27.54-.82.89-1.41.89H3.81Z" fill="white"/>
-                  </svg>
+                  <!-- Show placeholder if no licenses are selected -->
+                  <div v-if="selectedLicenses.length === 0" class="no-licenses-placeholder">
+                    <p>暂无选择许可证</p>
+                  </div>
                 </div>
-                <span class="term-text">{{ term.text }}</span>
+              </div>
+              
+              <div class="review-section-header">
+                <h3 class="section-title">您的资产</h3>
+              </div>
+              
+              <div class="asset-section">
+                <!-- 资产部分内容 -->
+                <div v-for="(file, index) in uploadedFiles" :key="index" class="asset-preview-card" :class="{ 'audio-asset': file.type.startsWith('audio/') }">
+                  <div class="asset-image-container">
+                    <!-- 图片文件 -->
+                    <img v-if="file.type.startsWith('image/')" :src="file.url" class="asset-preview-image" alt="Asset preview" />
+                    
+                    <!-- 视频文件 -->
+                    <video v-else-if="file.type.startsWith('video/')" :src="file.url" class="asset-preview-video" controls></video>
+                    
+                    <!-- 音频文件 -->
+                    <div v-else-if="file.type.startsWith('audio/')" class="asset-preview-audio">
+                      <div class="audio-icon">♪</div>
+                    </div>
+                    
+                    <!-- 其他类型文件 -->
+                    <div v-else class="asset-placeholder">
+                      <div class="placeholder-icon">📄</div>
+                    </div>
+                  </div>
+                  
+                  <div class="asset-preview-info">
+                    <div class="asset-source">公共资源门户</div>
+                    <div class="asset-name">{{ assetName || "Hiroyoshi Kaninnomiya" }}</div>
+                    
+                    <div class="asset-owner">
+                      <div class="asset-owner-label">持有者</div>
+                      <div class="owners-avatar-row">
+                        <!-- 当前用户/主要创作者 -->
+                        <div class="avatar-badge current-owner-badge">
+                          <span class="owner-icon">●</span>
+                        </div>
+                        
+                        <!-- 显示共同创作者 -->
+                        <template v-if="coCreators && coCreators.length > 0">
+                          <div v-for="(_, idx) in coCreators.slice(0, 2)" :key="idx" class="avatar-badge creator-badge">
+                            <span class="owner-icon">●</span>
+                          </div>
+                          
+                          <!-- 如果共同创作者超过2个，显示+X -->
+                          <div v-if="coCreators.length > 2" class="avatar-badge more-badge">
+                            <span class="owner-count">+{{ coCreators.length - 2 }}</span>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 如果没有文件，显示占位符 -->
+                <div v-if="uploadedFiles.length === 0" class="asset-preview-card">
+                  <div class="asset-image-container">
+                    <div class="asset-placeholder">
+                      <div class="placeholder-icon">?</div>
+                    </div>
+                  </div>
+                  
+                  <div class="asset-preview-info">
+                    <div class="asset-source">公共资源门户</div>
+                    <div class="asset-name">{{ assetName || "未命名资产" }}</div>
+                    
+                    <div class="asset-owner">
+                      <div class="asset-owner-label">持有者</div>
+                      <div class="owners-avatar-row">
+                        <!-- 当前用户/主要创作者 -->
+                        <div class="avatar-badge current-owner-badge">
+                          <span class="owner-icon">●</span>
+                        </div>
+                        
+                        <!-- 显示共同创作者 -->
+                        <template v-if="coCreators && coCreators.length > 0">
+                          <div v-for="(_, idx) in coCreators.slice(0, 2)" :key="idx" class="avatar-badge creator-badge">
+                            <span class="owner-icon">●</span>
+                          </div>
+                          
+                          <!-- 如果共同创作者超过2个，显示+X -->
+                          <div v-if="coCreators.length > 2" class="avatar-badge more-badge">
+                            <span class="owner-count">+{{ coCreators.length - 2 }}</span>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="review-actions">
+            <button class="back-review-btn" @click="goBack">
+              <span class="arrow">←</span> 返回
+            </button>
+            <button class="uiverse" @click="handleRegistration">
+              <div class="wrapper">
+                <span>发布</span>
+                <div class="circle circle-1"></div>
+                <div class="circle circle-2"></div>
+                <div class="circle circle-3"></div>
+                <div class="circle circle-4"></div>
+                <div class="circle circle-5"></div>
+                <div class="circle circle-6"></div>
+                <div class="circle circle-7"></div>
+                <div class="circle circle-8"></div>
+                <div class="circle circle-9"></div>
+                <div class="circle circle-10"></div>
+                <div class="circle circle-11"></div>
+                <div class="circle circle-12"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Add error notification -->
+    <div v-if="showFileTypeError" class="file-type-error">
+      <div class="error-content">
+        <span class="error-icon">⚠️</span>
+        <span class="error-message">{{ fileTypeErrorMessage }}</span>
+        <button class="error-close" @click="showFileTypeError = false">×</button>
+      </div>
+    </div>
+
+    <!-- 许可证冲突弹窗 -->
+    <div v-if="showLicenseConflictModal" class="license-conflict-modal">
+      <div class="modal-content">
+        <header class="modal-header">
+          <h2>许可证冲突</h2>
+          <span class="close-btn" @click="closeConflictModal">×</span>
+        </header>
+        <div class="modal-body">
+          <div class="conflict-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" id="ai" width="80" height="80" enable-background="new 0 0 48 48" version="1.1" viewBox="0 0 48 48">
+              <g>
+                <path fill="#000000" d="M26.2,32.5l-1.5-3.4h-6.6l-1.5,3.4h-3.7l6.8-15.7h3.4l6.8,15.7H26.2z M34.8,32.5h-3.4V20.4h3.4V32.5z M34.5,18.9c-0.4,0.4-0.9,0.6-1.4,0.6c-0.6,0-1-0.2-1.4-0.6c-0.4-0.4-0.6-0.9-0.6-1.4c0-0.6,0.2-1,0.6-1.4c0.4-0.4,0.9-0.6,1.4-0.6c0.6,0,1,0.2,1.4,0.6c0.4,0.4,0.6,0.9,0.6,1.4C35.1,18,34.9,18.5,34.5,18.9z"></path>
+                <polygon fill="#000000" points="19.5 26 23.4 26 21.4 21.5"></polygon>
+              </g>
+            </svg>
+          </div>
+          <div class="conflict-info">
+            <p class="conflict-title">无法添加以下许可证：</p>
+            <div class="conflict-license new-license">
+              <span class="license-tag">{{ conflictModalData.newLicenseName }}</span>
+            </div>
+            
+            <p class="conflict-title">已选择的冲突许可证：</p>
+            <div class="conflict-license existing-license">
+              <span class="license-tag" v-for="license in conflictModalData.conflictingLicenses" :key="license">
+                {{ getLicenseName(license) }}
+              </span>
+            </div>
+            
+            <p class="conflict-reason">
+              <span class="reason-label">冲突原因：</span>
+              {{ conflictModalData.reason }}
+            </p>
+          </div>
+          
+          <div class="valid-combinations">
+            <h3>有效的许可证组合</h3>
+            <div class="combination">
+              <div class="combination-group">
+                <span class="license-tag blue">开放使用</span>
+                <span class="combination-note">（单独使用）</span>
+              </div>
+            </div>
+            <div class="combination">
+              <div class="combination-group">
+                <span class="license-tag purple">非商业混音</span>
+                <span class="plus-sign">+</span>
+                <span class="license-tag green">商业使用</span>
+                <span class="plus-sign">+</span>
+                <span class="license-tag red">商业混音</span>
+                <span class="combination-note">（可任意组合）</span>
               </div>
             </div>
           </div>
         </div>
+        <div class="modal-footer">
+          <button class="modal-btn cancel-btn" @click="closeConflictModal">我知道了</button>
+        </div>
+      </div>
+    </div>
 
-        <div class="license-detail-footer">
-          <button class="view-legal-btn">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 2V14H14V4.83L11.17 2H2ZM11 5V2.5L13.5 5H11Z" fill="white"/>
-            </svg>
-            View legal code
-          </button>
+    <!-- 许可证详情弹窗 -->
+    <div v-if="showLicenseDetailModal" class="license-detail-modal">
+      <div class="modal-content license-detail-content">
+        <header class="modal-header">
+          <div class="license-detail-logo">
+            <div class="ip-logo">IP</div>
+            <div class="license-detail-title">{{ currentLicenseDetail.name }}</div>
+            <div class="license-detail-icons">
+              <span v-if="currentLicenseDetail.license === 'open'"><span class="license-icon">📝</span></span>
+              <span v-if="currentLicenseDetail.license === 'commercial' || currentLicenseDetail.license === 'commercial-remix'"><span class="license-icon">💲</span></span>
+              <span v-if="currentLicenseDetail.license === 'non-commercial' || currentLicenseDetail.license === 'commercial-remix'"><span class="license-icon">↩️</span></span>
+            </div>
+          </div>
+          <span class="close-btn" @click="closeLicenseDetailModal">×</span>
+        </header>
+        
+        <div class="modal-body">
+          <div class="license-summary">
+            <h3>许可证摘要</h3>
+            <p>{{ currentLicenseDetail.summary }}</p>
+          </div>
+          
+          <div class="license-terms">
+            <h3>许可条款</h3>
+            <div class="terms-list">
+              <div class="term-item" v-if="currentLicenseDetail.license === 'open'">
+                <div class="term-icon">📝</div>
+                <div class="term-text">无需标明出处</div>
+              </div>
+              <div class="term-item" v-else>
+                <div class="term-icon">📝</div>
+                <div class="term-text">需要标明出处</div>
+              </div>
+              
+              <div class="term-item">
+                <div class="term-icon">💲</div>
+                <div class="term-text">
+                  {{ currentLicenseDetail.license === 'non-commercial' ? '仅限非商业使用' : 
+                     currentLicenseDetail.license === 'commercial' || currentLicenseDetail.license === 'commercial-remix' ? '允许商业使用' : '允许任何使用' }}
+                </div>
+              </div>
+              
+              <div class="term-item">
+                <div class="term-icon">↩️</div>
+                <div class="term-text">
+                  {{ currentLicenseDetail.license === 'non-commercial' || currentLicenseDetail.license === 'commercial-remix' || currentLicenseDetail.license === 'open' ? '允许混音改编' : '不允许混音改编' }}
+                </div>
+              </div>
+              
+              <div class="term-item">
+                <div class="term-icon">📊</div>
+                <div class="term-text">
+                  {{ currentLicenseDetail.license === 'commercial' || currentLicenseDetail.license === 'commercial-remix' ? '收取版税' : '无版税共享' }}
+                </div>
+              </div>
+              
+              <div class="term-item">
+                <div class="term-icon">🤖</div>
+                <div class="term-text">{{ aiTrainingEnabled ? 'AI训练允许' : 'AI训练不允许' }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="license-view-legal">
+            <button class="view-legal-btn">
+              <span class="legal-icon">📄</span>
+              查看法律条款
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -6737,7 +5340,7 @@ const tabs = [
 const expandedFilters = ref<Record<string, boolean>>({
   'ai-training': false,
   'commercial-use': false,
-  'attribution': false, // 修改为默认不展开
+  'attribution': false,
   'remixing': false,
   'expiration': false,
   'licensing-fee': false
@@ -6832,7 +5435,7 @@ const setActiveTab = (index: number) => {
   activeTabIndex.value = index
   // 切换标签页时清除选择的许可证
   if (index !== 0) {
-    selectedLicense.value = ''
+    selectedLicenses.value = []
   }
   
   // 切换到自定义许可证标签页时重置所有展开状态
@@ -6854,12 +5457,6 @@ const selectLicense = (license: string) => {
     if (licenseConflicts.hasConflict) {
       showLicenseConflictAlert(license, licenseConflicts.conflictingLicenses, licenseConflicts.reason)
     } else {
-      // 如果超过了最大选择数量（5个），显示提示
-      if (selectedLicenses.value.length >= 5) {
-        alert('您最多可以选择5个许可证');
-        return;
-      }
-      
       // 无冲突，添加许可证
       selectedLicenses.value.push(license)
       selectedLicense.value = license
@@ -7200,7 +5797,11 @@ const shortenWallet = (wallet: string) => {
 // 移除许可证
 const removeLicense = (license: string) => {
   selectedLicenses.value = selectedLicenses.value.filter(item => item !== license)
-  selectedLicense.value = selectedLicenses.value.length > 0 ? selectedLicenses.value[0] : ''
+  if (selectedLicenses.value.length > 0) {
+    selectedLicense.value = selectedLicenses.value[0]
+  } else {
+    selectedLicense.value = ''
+  }
   
   // 检查剩余的许可证组合是否有冲突
   checkCurrentLicenseCombination()
@@ -7394,28 +5995,66 @@ const acceptConflict = () => {
   closeConflictModal();
 }
 
-const getLicenseName = (licenseId: string) => {
-  const licenseNames: Record<string, string> = {
+const getLicenseName = (license: string) => {
+  const licenseNames = {
     'open': '开放使用',
     'non-commercial': '非商业混音',
     'commercial': '商业使用',
     'commercial-remix': '商业混音'
   }
-  return licenseNames[licenseId] || licenseId;
+  return licenseNames[license as keyof typeof licenseNames] || license;
 }
 
 // 检查当前许可证组合是否有冲突
 const checkCurrentLicenseCombination = () => {
-  // 目前的冲突规则比较简单，开放使用与其他许可证冲突
-  // 如果需要更复杂的冲突检查，可以在这里扩展
-  const hasOpen = selectedLicenses.value.includes('open')
-  const hasOthers = selectedLicenses.value.some(l => ['commercial', 'commercial-remix', 'non-commercial'].includes(l))
+  // 检查是否包含开放使用许可证
+  const hasOpenLicense = selectedLicenses.value.includes('open');
   
-  if (hasOpen && hasOthers) {
-    // 有冲突，需要处理
-    console.warn('当前许可证组合存在冲突：开放使用与其他许可证不能同时选择')
-    // 可以在这里添加更多的冲突处理逻辑
+  // 检查是否包含其他许可证
+  const hasOtherLicenses = selectedLicenses.value.some(license => 
+    license === 'commercial' || license === 'commercial-remix' || license === 'non-commercial'
+  );
+  
+  // 只有同时包含开放使用和其他许可证才算冲突
+  if (hasOpenLicense && hasOtherLicenses) {
+    const otherLicenses = selectedLicenses.value.filter(l => 
+      ['commercial', 'commercial-remix', 'non-commercial'].includes(l)
+    );
+    
+    // 声明冲突相关变量
+    let conflictingLicense = '';
+    let conflictingWithLicense = '';
+    let reason = '';
+    
+    // 根据数量决定保留哪一类
+    if (otherLicenses.length >= 1) {
+      // 保留其他许可证，移除开放使用
+      selectedLicenses.value = otherLicenses;
+      conflictingLicense = 'open';
+      conflictingWithLicense = otherLicenses[0];
+      reason = '开放使用（完全免费无限制）与其他许可证类型互斥。系统已移除开放使用许可证。';
+    } else {
+      // 保留开放使用，移除其他许可证
+      selectedLicenses.value = ['open'];
+      conflictingLicense = otherLicenses[0];
+      conflictingWithLicense = 'open';
+      reason = '其他许可证类型与开放使用（完全免费无限制）互斥。系统已移除其他许可证。';
+    }
+    
+    // 更新selectedLicense以匹配
+    if (selectedLicenses.value.length > 0) {
+      selectedLicense.value = selectedLicenses.value[0];
+    } else {
+      selectedLicense.value = '';
+    }
+    
+    // 显示冲突提示
+    showLicenseConflictAlert(conflictingLicense, [conflictingWithLicense], reason);
+    
+    return true;
   }
+  
+  return false;
 }
 
 // 添加AI训练设置状态
@@ -7473,129 +6112,53 @@ const getFileTypeDisplay = (fileType: string) => {
   }
 }
 
-// 许可证详情弹框
+// 添加许可证详情弹窗状态
 const showLicenseDetailModal = ref(false);
 const currentLicenseDetail = ref({
-  title: 'Open Use',
-  summary: 'Open Domain is a public dedication tool, which enables creators to give up their copyright and put their works into the worldwide public domain. Reusers can distribute, remix, adapt, and build upon the asset in any medium or format, with no conditions.',
-  terms: [
-    { key: 'attribution', text: 'Attribution is not required' },
-    { key: 'commercial', text: 'Non-commercial use only' },
-    { key: 'remix', text: 'Remixing allowed' },
-    { key: 'royalty', text: 'No royalty sharing' },
-    { key: 'ai', text: 'AI training allowed' }
-  ]
+  license: '',
+  name: '',
+  summary: ''
 });
 
-// 许可证数据
-const licenseTypes = [
-  {
-    id: 'open',
-    title: 'Open Use',
-    description: 'Allow unrestricted use with no restrictions',
-    terms: [
-      { key: 'attribution', text: 'Attribution is not required' },
-      { key: 'commercial', text: 'Commercial use allowed' },
-      { key: 'remix', text: 'Remixing allowed' },
-      { key: 'royalty', text: 'No royalty sharing' },
-      { key: 'ai', text: 'AI training allowed' }
-    ],
-    summary: 'Open Domain is a public dedication tool, which enables creators to give up their copyright and put their works into the worldwide public domain. Reusers can distribute, remix, adapt, and build upon the asset in any medium or format, with no conditions.'
-  },
-  {
-    id: 'non-commercial',
-    title: 'Non-Commercial Remix',
-    description: 'Allow non-commercial use with remixing',
-    terms: [
-      { key: 'attribution', text: 'Attribution is required' },
-      { key: 'commercial', text: 'Commercial use not allowed' },
-      { key: 'remix', text: 'Remixing allowed' },
-      { key: 'royalty', text: 'No royalty sharing' },
-      { key: 'ai', text: 'AI training limited' }
-    ],
-    summary: 'This license allows reusers to distribute, remix, adapt, and build upon the material in any medium or format for noncommercial purposes only, and only so long as attribution is given to the creator.'
-  },
-  {
-    id: 'commercial',
-    title: 'Commercial Use',
-    description: 'Allow commercial use with attribution',
-    terms: [
-      { key: 'attribution', text: 'Attribution is required' },
-      { key: 'commercial', text: 'Commercial use allowed' },
-      { key: 'remix', text: 'Remixing not allowed' },
-      { key: 'royalty', text: 'Royalty sharing required' },
-      { key: 'ai', text: 'AI training not allowed' }
-    ],
-    summary: 'This license allows reusers to distribute, remix, adapt, and build upon the material in any medium or format, so long as attribution is given to the creator. The license allows for commercial use.'
-  },
-  {
-    id: 'commercial-remix',
-    title: 'Commercial Remix',
-    description: 'Allow commercial use with remixing and attribution',
-    terms: [
-      { key: 'attribution', text: 'Attribution is required' },
-      { key: 'commercial', text: 'Commercial use allowed' },
-      { key: 'remix', text: 'Remixing allowed' },
-      { key: 'royalty', text: 'Royalty sharing required' },
-      { key: 'ai', text: 'AI training allowed with limitations' }
-    ],
-    summary: 'This license allows reusers to distribute, remix, adapt, and build upon the material in any medium or format, even commercially. The license allows for commercial use, remixing and adaptation, as long as attribution is provided to the original creator.'
-  }
-];
-
 // 打开许可证详情弹窗
-const openLicenseDetailModal = (licenseId: string) => {
-  const license = licenseTypes.find(l => l.id === licenseId);
-  if (license) {
-    currentLicenseDetail.value = {
-      title: license.title,
-      summary: license.summary,
-      terms: license.terms
-    };
-    showLicenseDetailModal.value = true;
-  }
-}
+const openLicenseDetail = (license: string) => {
+  const licenseDetails = {
+    'open': {
+      name: '开放使用',
+      summary: '开放域是一种公共贡献工具，它允许创作者放弃版权，将作品放入全球公共域。使用者可以在任何媒介或格式中分发、混音、改编和构建作品，无需任何条件。'
+    },
+    'non-commercial': {
+      name: '非商业混音',
+      summary: '任何人都可以使用您的作品创建非商业项目。他们可以修改、调整和构建您的作品，但必须标明原创者，且不能将作品用于商业目的。'
+    },
+    'commercial': {
+      name: '商业使用',
+      summary: '允许他人按照您设定的经济条款使用您的作品。使用者必须支付许可费和/或版税，但不允许对您的作品进行修改或创建衍生作品。'
+    },
+    'commercial-remix': {
+      name: '商业混音',
+      summary: '允许他们混音您的作品，同时您获得认可和收益。使用者可以修改和构建您的作品，但必须支付许可费和/或版税，同时标明您是原创者。'
+    }
+  };
+  
+  currentLicenseDetail.value = {
+    license,
+    name: licenseDetails[license as keyof typeof licenseDetails].name,
+    summary: licenseDetails[license as keyof typeof licenseDetails].summary
+  };
+  
+  showLicenseDetailModal.value = true;
+};
 
 // 关闭许可证详情弹窗
 const closeLicenseDetailModal = () => {
   showLicenseDetailModal.value = false;
-}
+};
 
-.licenses-section {
-  position: relative;
-  overflow: visible;
-}
-
-.licenses-section.has-modal .licenses-list {
-  position: relative;
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-.license-detail-modal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: calc(100% - 40px);
-  max-width: 380px;
-  min-height: 300px;
-  background-color: #1E1E1E;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-}
-
-.license-detail-content {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  height: 100%;
-  width: 100%;
-}
+// 更新license-search-btn点击事件
+const handleLicenseSearch = (license: string) => {
+  openLicenseDetail(license);
+};
 </script>
 
 <style scoped>
@@ -7932,12 +6495,13 @@ h1 {
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   padding: 0;
   position: relative;
-  overflow: visible; /* 允许内容溢出 */
+  overflow: hidden; /* 改为hidden以控制内容 */
   display: flex;
   flex-direction: column;
   box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
+  box-sizing: border-box; /* 确保padding不会增加卡片宽度 */
 }
 
 .license-card:hover {
@@ -7983,22 +6547,31 @@ h1 {
   margin-top: auto;
   display: flex;
   justify-content: space-between;
+  align-items: center; /* 确保垂直居中 */
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 15px 24px;
+  padding: 15px 16px; /* 减小水平内边距 */
+  width: 100%; /* 确保宽度撑满 */
+  box-sizing: border-box; /* 确保padding不会增加宽度 */
+  flex-wrap: nowrap; /* 防止元素换行 */
+  min-height: 54px; /* 确保足够的高度 */
 }
 
 .license-icons {
   display: flex;
-  gap: 18px;
+  gap: 10px; /* 更小的图标间距 */
+  flex-wrap: nowrap; /* 防止图标换行 */
+  max-width: calc(100% - 40px); /* 留出空间给检查指示器 */
 }
 
 .icon {
-  width: 24px;
-  height: 24px;
+  width: 22px; /* 稍微减小图标尺寸 */
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0.6;
+  flex-shrink: 0; /* 防止图标缩小 */
+  font-size: 14px; /* 减小图标字体大小 */
 }
 
 .check-indicator {
@@ -8197,11 +6770,22 @@ h1 {
   }
   
   .license-footer {
-    padding: 12px 16px;
+    padding: 12px 14px; /* 进一步减小内边距 */
   }
   
   .license-description-zh {
     font-size: 14px;
+  }
+  
+  /* 增加小屏幕下的图标处理 */
+  .license-icons {
+    gap: 10px; /* 在小屏幕上进一步减小图标间距 */
+  }
+  
+  .icon {
+    width: 20px; /* 稍微减小图标尺寸 */
+    height: 20px;
+    font-size: 12px; /* 减小图标字体大小 */
   }
 }
 
@@ -9822,11 +8406,6 @@ h1 {
   font-weight: 400;
   background-color: rgba(0, 0, 0, 0.6);
   color: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-}
-
-.license-tag:hover {
-  background-color: rgba(30, 30, 30, 0.8);
 }
 
 .license-tag.blue {
@@ -10827,22 +9406,105 @@ input:checked + .slider:before {
 }
 
 .asset-section {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  flex-wrap: wrap;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .asset-preview-card {
-  background-color: #212121;
-  border-radius: 10px;
+  position: relative;
+  background-color: #1a1a1a;
+  border-radius: 12px;
   overflow: hidden;
-  width: 280px;
-  flex: 0 0 auto;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(50, 50, 50, 0.8);
+  width: 100%;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.asset-preview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Special case for audio files - allow them to be smaller */
+.asset-preview-card.audio-asset {
+  grid-column: span 1;
+}
+
+/* All other asset types - force them to maintain 4 per row */
+.asset-preview-card:not(.audio-asset) {
+  grid-column: span 1;
+}
+
+.asset-image-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background-color: #0f0f0f;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.asset-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.asset-preview-info {
+  padding: 12px;
+  background-color: #111;
+  border-radius: 0 0 12px 12px;
+}
+
+.asset-source {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+}
+
+.asset-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.asset-owner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.asset-owner-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.avatar-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 0, 0.15);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+}
+
+.owner-icon {
+  color: #ffcc00;
+  font-size: 12px;
 }
 
 .add-license-btn {
@@ -11345,182 +10007,618 @@ input:checked + .slider:before {
 
 .more-badge {
   background-color: rgba(150, 150, 150, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 10px;
+  flex-shrink: 0;
 }
 
 .owner-count {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  text-align: center;
 }
 
 .owner-icon {
   font-size: 12px;
 }
 
-/* License detail modal styles */
+/* 许可证详情弹窗样式 */
 .license-detail-modal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 100;
+  align-items: center;
+  z-index: 1000;
   backdrop-filter: blur(5px);
+  animation: modalFadeIn 0.3s ease;
 }
 
 .license-detail-content {
-  width: 380px;
-  background-color: #1E1E1E;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  max-height: 90%;
+  background-color: #1e1e1e;
+  width: 500px;
   max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.license-detail-header {
-  position: relative;
-  padding: 25px 30px 15px 30px;
+.license-detail-logo {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-.license-ip-logo {
-  margin-bottom: 5px;
+.ip-logo {
+  width: 40px;
+  height: 40px;
+  background-color: black;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  color: white;
+  border: 2px solid white;
 }
 
 .license-detail-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
-  color: white;
-  margin-bottom: 5px;
 }
 
 .license-detail-icons {
   display: flex;
-  gap: 15px;
-  margin-top: 5px;
+  gap: 10px;
+  margin-left: 10px;
 }
 
-.detail-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: opacity 0.2s;
+.license-summary, .license-terms {
+  margin-bottom: 24px;
 }
 
-.detail-icon:hover {
-  opacity: 0.8;
-}
-
-.close-detail-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 25px;
-  height: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-}
-
-.close-detail-btn:hover {
-  opacity: 1;
-}
-
-.license-detail-body {
-  padding: 0 30px 20px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.license-summary-section,
-.license-terms-section {
-  margin-bottom: 25px;
-}
-
-.license-summary-section h3,
-.license-terms-section h3 {
+.license-summary h3, .license-terms h3 {
   font-size: 16px;
   font-weight: 500;
-  color: white;
-  opacity: 0.6;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.license-summary-section p {
-  color: white;
+.license-summary p {
+  font-size: 14px;
   line-height: 1.6;
-  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.license-terms-list {
+.terms-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
-.license-term-item {
+.term-item {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 }
 
 .term-icon {
-  width: 30px;
-  height: 30px;
+  font-size: 18px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
 }
 
 .term-text {
-  color: white;
-  font-size: 15px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.license-detail-footer {
-  padding: 20px 30px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.license-view-legal {
+  margin-top: 24px;
   display: flex;
   justify-content: center;
 }
 
 .view-legal-btn {
-  background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  border-radius: 30px;
-  padding: 10px 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 8px;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .view-legal-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.legal-icon {
+  font-size: 16px;
+}
+
+/* 更新许可证列表中的按钮样式 */
+.license-search-btn, .license-delete-btn {
+  border-radius: 4px;
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 增加小屏幕下的图标处理 */
+.license-icons {
+  gap: 8px; /* 在小屏幕上进一步减小图标间距 */
+  max-width: calc(100% - 36px); /* 更新检查指示器留白 */
+}
+
+.icon {
+  width: 20px; /* 稍微减小图标尺寸 */
+  height: 20px;
+  font-size: 12px; /* 减小图标字体大小 */
+}
+
+.check-indicator {
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+}
+
+/* 添加超小屏幕的处理 */
+@media (max-width: 380px) {
+  .license-card h2 {
+    font-size: 16px;
+    margin: 6px 14px 6px;
+  }
+  
+  .license-header {
+    padding: 12px 14px 0 14px;
+  }
+  
+  .license-content {
+    padding: 0 14px;
+    margin-bottom: 12px;
+  }
+  
+  .license-description-zh {
+    font-size: 13px;
+  }
+  
+  .license-footer {
+    padding: 10px 12px; /* 再减小内边距 */
+    min-height: 48px; /* 减小最小高度 */
+  }
+  
+  .license-icons {
+    gap: 6px; /* 再减小图标间距 */
+  }
+  
+  .icon {
+    width: 18px; /* 更小的图标 */
+    height: 18px;
+    font-size: 11px;
+  }
+  
+  .check-indicator {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+}
+
+/* 为每种许可证添加特定的底部样式 */
+.license-footer-open,
+.license-footer-noncommercial,
+.license-footer-commercial,
+.license-footer-commercial-remix {
+  /* 共同基础样式 */
+  padding: 15px 16px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 54px;
+}
+
+/* 图标容器自适应宽度 */
+.license-icons-open,
+.license-icons-noncommercial,
+.license-icons-commercial,
+.license-icons-commercial-remix {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  /* 确保每个图标都正常显示 */
+  width: calc(100% - 40px);
+  min-width: 0; /* 允许容器缩小到内容以下 */
+}
+
+/* 确保每个图标都有足够的空间 */
+.license-icons-open .icon,
+.license-icons-noncommercial .icon,
+.license-icons-commercial .icon,
+.license-icons-commercial-remix .icon {
+  flex: 0 0 22px; /* 固定宽度，不允许缩小 */
+  width: 22px;
+  height: 22px;
+  overflow: hidden; /* 防止内容溢出 */
+  font-size: 14px;
+}
+
+/* 小屏幕调整 */
+@media (max-width: 480px) {
+  .license-footer-open,
+  .license-footer-noncommercial,
+  .license-footer-commercial,
+  .license-footer-commercial-remix {
+    padding: 12px 14px;
+  }
+  
+  .license-icons-open,
+  .license-icons-noncommercial,
+  .license-icons-commercial,
+  .license-icons-commercial-remix {
+    gap: 8px;
+  }
+  
+  .license-icons-open .icon,
+  .license-icons-noncommercial .icon,
+  .license-icons-commercial .icon,
+  .license-icons-commercial-remix .icon {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+}
+
+/* 超小屏幕调整 */
+@media (max-width: 380px) {
+  .license-footer-open,
+  .license-footer-noncommercial,
+  .license-footer-commercial,
+  .license-footer-commercial-remix {
+    padding: 10px 12px;
+    min-height: 48px;
+  }
+  
+  .license-icons-open,
+  .license-icons-noncommercial,
+  .license-icons-commercial,
+  .license-icons-commercial-remix {
+    gap: 6px;
+  }
+  
+  .license-icons-open .icon,
+  .license-icons-noncommercial .icon,
+  .license-icons-commercial .icon,
+  .license-icons-commercial-remix .icon {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+  }
+}
+
+/* 辉光按钮样式 - From Uiverse.io by Ashon-G */
+.uiverse {
+  --duration: 7s;
+  --easing: linear;
+  --c-color-1: rgba(255, 163, 26, 0.7);
+  --c-color-2: #1a23ff;
+  --c-color-3: #e21bda;
+  --c-color-4: rgba(255, 232, 26, 0.7);
+  --c-shadow: rgba(255, 223, 87, 0.5);
+  --c-shadow-inset-top: rgba(255, 223, 52, 0.9);
+  --c-shadow-inset-bottom: rgba(255, 250, 215, 0.8);
+  --c-radial-inner: #ffd215;
+  --c-radial-outer: #fff172;
+  --c-color: #fff;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  outline: none;
+  position: relative;
+  cursor: pointer;
+  border: none;
+  display: table;
+  border-radius: 24px;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  color: var(--c-color);
+  background: radial-gradient(
+    circle,
+    var(--c-radial-inner),
+    var(--c-radial-outer) 80%
+  );
+  box-shadow: 0 0 14px var(--c-shadow);
+}
+
+.uiverse:before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 24px;
+  box-shadow:
+    inset 0 3px 12px var(--c-shadow-inset-top),
+    inset 0 -3px 4px var(--c-shadow-inset-bottom);
+}
+
+.uiverse .wrapper {
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  overflow: hidden;
+  border-radius: 24px;
+  min-width: 132px;
+  padding: 12px 0;
+}
+
+.uiverse .wrapper span {
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+}
+
+.uiverse:hover {
+  --duration: 1400ms;
+}
+
+.uiverse .wrapper .circle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  filter: blur(var(--blur, 8px));
+  background: var(--background, transparent);
+  transform: translate(var(--x, 0), var(--y, 0)) translateZ(0);
+  animation: var(--animation, none) var(--duration) var(--easing) infinite;
+}
+
+.uiverse .wrapper .circle.circle-1,
+.uiverse .wrapper .circle.circle-9,
+.uiverse .wrapper .circle.circle-10 {
+  --background: var(--c-color-4);
+}
+
+.uiverse .wrapper .circle.circle-3,
+.uiverse .wrapper .circle.circle-4 {
+  --background: var(--c-color-2);
+  --blur: 14px;
+}
+
+.uiverse .wrapper .circle.circle-5,
+.uiverse .wrapper .circle.circle-6 {
+  --background: var(--c-color-3);
+  --blur: 16px;
+}
+
+.uiverse .wrapper .circle.circle-2,
+.uiverse .wrapper .circle.circle-7,
+.uiverse .wrapper .circle.circle-8,
+.uiverse .wrapper .circle.circle-11,
+.uiverse .wrapper .circle.circle-12 {
+  --background: var(--c-color-1);
+  --blur: 12px;
+}
+
+.uiverse .wrapper .circle.circle-1 {
+  --x: 0;
+  --y: -40px;
+  --animation: circle-1;
+}
+
+.uiverse .wrapper .circle.circle-2 {
+  --x: 92px;
+  --y: 8px;
+  --animation: circle-2;
+}
+
+.uiverse .wrapper .circle.circle-3 {
+  --x: -12px;
+  --y: -12px;
+  --animation: circle-3;
+}
+
+.uiverse .wrapper .circle.circle-4 {
+  --x: 80px;
+  --y: -12px;
+  --animation: circle-4;
+}
+
+.uiverse .wrapper .circle.circle-5 {
+  --x: 12px;
+  --y: -4px;
+  --animation: circle-5;
+}
+
+.uiverse .wrapper .circle.circle-6 {
+  --x: 56px;
+  --y: 16px;
+  --animation: circle-6;
+}
+
+.uiverse .wrapper .circle.circle-7 {
+  --x: 8px;
+  --y: 28px;
+  --animation: circle-7;
+}
+
+.uiverse .wrapper .circle.circle-8 {
+  --x: 28px;
+  --y: -4px;
+  --animation: circle-8;
+}
+
+.uiverse .wrapper .circle.circle-9 {
+  --x: 20px;
+  --y: -12px;
+  --animation: circle-9;
+}
+
+.uiverse .wrapper .circle.circle-10 {
+  --x: 64px;
+  --y: 16px;
+  --animation: circle-10;
+}
+
+.uiverse .wrapper .circle.circle-11 {
+  --x: 4px;
+  --y: 4px;
+  --animation: circle-11;
+}
+
+.uiverse .wrapper .circle.circle-12 {
+  --blur: 14px;
+  --x: 52px;
+  --y: 4px;
+  --animation: circle-12;
+}
+
+@keyframes circle-1 {
+  33% {
+    transform: translate(0px, 16px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(12px, 64px) translateZ(0);
+  }
+}
+
+@keyframes circle-2 {
+  33% {
+    transform: translate(80px, -10px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(72px, -48px) translateZ(0);
+  }
+}
+
+@keyframes circle-3 {
+  33% {
+    transform: translate(20px, 12px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(12px, 4px) translateZ(0);
+  }
+}
+
+@keyframes circle-4 {
+  33% {
+    transform: translate(76px, -12px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(112px, -8px) translateZ(0);
+  }
+}
+
+@keyframes circle-5 {
+  33% {
+    transform: translate(84px, 28px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(40px, -32px) translateZ(0);
+  }
+}
+
+@keyframes circle-6 {
+  33% {
+    transform: translate(28px, -16px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(76px, -56px) translateZ(0);
+  }
+}
+
+@keyframes circle-7 {
+  33% {
+    transform: translate(8px, 28px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(20px, -60px) translateZ(0);
+  }
+}
+
+@keyframes circle-8 {
+  33% {
+    transform: translate(32px, -4px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(56px, -20px) translateZ(0);
+  }
+}
+
+@keyframes circle-9 {
+  33% {
+    transform: translate(20px, -12px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(80px, -8px) translateZ(0);
+  }
+}
+
+@keyframes circle-10 {
+  33% {
+    transform: translate(68px, 20px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(100px, 28px) translateZ(0);
+  }
+}
+
+@keyframes circle-11 {
+  33% {
+    transform: translate(4px, 4px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(68px, 20px) translateZ(0);
+  }
+}
+
+@keyframes circle-12 {
+  33% {
+    transform: translate(56px, 0px) translateZ(0);
+  }
+
+  66% {
+    transform: translate(60px, -32px) translateZ(0);
+  }
 }
 </style>

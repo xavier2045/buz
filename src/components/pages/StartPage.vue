@@ -111,11 +111,14 @@ const showUnavailable = (type: string) => {
 
 .task-icon {
   background-color: rgba(255, 138, 101, 0.2);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23ff8a65' viewBox='0 0 24 24'%3E%3Cpath d='M19,3h-4.18C14.4,1.84 13.3,1 12,1S9.6,1.84 9.18,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2-0.9 2-2V5C21,3.9 20.1,3 19,3zM12,3c0.55,0 1,0.45 1,1s-0.45,1-1,1s-1-0.45-1-1S11.45,3 12,3zM14,17H7v-2h7V17zM17,13H7v-2h10V13zM17,9H7V7h10V9z'/%3E%3C/svg%3E");
+  background-image: url('../../assets/images/working-on-virtual-screen.png');
+  background-size: cover;
+  background-position: center;
 }
 
 .people-icon {
   background-color: rgba(156, 39, 176, 0.2);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%239c27b0' viewBox='0 0 24 24'%3E%3Cpath d='M16,11c1.66,0 2.99,-1.34 2.99,-3S17.66,5 16,5s-3,1.34 -3,3 1.34,3 3,3zM8,11c1.66,0 2.99,-1.34 2.99,-3S9.66,5 8,5 5,6.34 5,8s1.34,3 3,3zM8,13c-2.33,0 -7,1.17 -7,3.5L1,19h14v-2.5c0,-2.33 -4.67,-3.5 -7,-3.5zM16,13c-0.29,0 -0.62,0.02 -0.97,0.05 1.16,0.84 1.97,1.97 1.97,3.45L17,19h6v-2.5c0,-2.33 -4.67,-3.5 -7,-3.5z'/%3E%3C/svg%3E");
+  background-image: url('../../assets/images/virtual-meeting.png');
+  background-size: contain;
 }
 </style> 

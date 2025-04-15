@@ -1,0 +1,2202 @@
+<template>
+  <Teleport to="body">
+    <div class="japanese-door-container" v-if="show" :class="{ 'impact-effect': show }">
+      <div class="overlay" @click="closeModal"></div>
+      
+      <div class="modal-content" @click.stop :class="{ 'slam-effect': show }">
+        <div class="door-frame">
+          <!-- 顶部木框 -->
+          <div class="door-top-frame"></div>
+          
+          <!-- 环境光效果 -->
+          <div class="ambient-lighting"></div>
+          
+          <!-- Left sliding door -->
+          <div class="sliding-door left" :class="{ 
+            'open': doorsOpen, 
+            'door-vibrate': show && !doorsOpen && clickProgress === 0,
+            'partially-open': !doorsOpen && clickProgress > 0,
+            'difficulty-level-1': clickProgress > 0 && clickProgress <= requiredClicks * 0.2,
+            'difficulty-level-2': clickProgress > requiredClicks * 0.2 && clickProgress <= requiredClicks * 0.4,
+            'difficulty-level-3': clickProgress > requiredClicks * 0.4 && clickProgress <= requiredClicks * 0.6,
+            'difficulty-level-4': clickProgress > requiredClicks * 0.6 && clickProgress <= requiredClicks * 0.8,
+            'difficulty-level-5': clickProgress > requiredClicks * 0.8 && clickProgress < requiredClicks,
+            'final-push': clickProgress === requiredClicks
+          }" :style="{ transform: getLeftDoorTransform() }" @click="handleDoorClick">
+            <div class="door-grid-container">
+              <!-- 黑色格子木栅结构 -->
+              <div class="horizontal-grid"></div>
+              <div class="vertical-grid"></div>
+              <div class="paper-texture"></div>
+              
+              <!-- 日文标记 -->
+              <div class="japanese-mark left">幸運</div>
+              
+              <!-- 底部的木框部分 -->
+              <div class="door-bottom">
+                <div class="wood-grain"></div>
+              </div>
+              
+              <!-- 门把手 -->
+              <div class="door-handle">
+                <div class="handle-detail"></div>
+              </div>
+            </div>
+            
+            <!-- 点击提示光效 -->
+            <div class="click-hint left" :class="{'visible': !doorsOpen && clickProgress === 0}"></div>
+          </div>
+          
+          <!-- Right sliding door -->
+          <div class="sliding-door right" :class="{ 
+            'open': doorsOpen, 
+            'door-vibrate': show && !doorsOpen && clickProgress === 0,
+            'partially-open': !doorsOpen && clickProgress > 0,
+            'difficulty-level-1': clickProgress > 0 && clickProgress <= requiredClicks * 0.2,
+            'difficulty-level-2': clickProgress > requiredClicks * 0.2 && clickProgress <= requiredClicks * 0.4,
+            'difficulty-level-3': clickProgress > requiredClicks * 0.4 && clickProgress <= requiredClicks * 0.6,
+            'difficulty-level-4': clickProgress > requiredClicks * 0.6 && clickProgress <= requiredClicks * 0.8,
+            'difficulty-level-5': clickProgress > requiredClicks * 0.8 && clickProgress < requiredClicks,
+            'final-push': clickProgress === requiredClicks
+          }" :style="{ transform: getRightDoorTransform() }" @click="handleDoorClick">
+            <div class="door-grid-container">
+              <!-- 黑色格子木栅结构 -->
+              <div class="horizontal-grid"></div>
+              <div class="vertical-grid"></div>
+              <div class="paper-texture"></div>
+              
+              <!-- 日文标记 -->
+              <div class="japanese-mark right">スロット</div>
+              
+              <!-- 底部的木框部分 -->
+              <div class="door-bottom">
+                <div class="wood-grain"></div>
+              </div>
+              
+              <!-- 门把手 -->
+              <div class="door-handle">
+                <div class="handle-detail"></div>
+              </div>
+            </div>
+            
+            <!-- 点击提示光效 -->
+            <div class="click-hint right" :class="{'visible': !doorsOpen && clickProgress === 0}"></div>
+          </div>
+          
+          <!-- 提示文字 - 只在门关闭时显示 -->
+          <div class="door-prompt" v-if="!doorsOpen">
+            <div class="prompt-text" :class="{'attention-text': clickProgress === 0}">{{ getPromptText() }}</div>
+            <div class="progress-container" v-if="clickProgress > 0">
+              <div class="progress-bar-wrapper">
+                <div class="progress-bar" 
+                    :class="{
+                      'pulse-progress': true, 
+                      'intense-pulse': clickProgress > requiredClicks * 0.5,
+                      'final-pulse': clickProgress > requiredClicks * 0.8
+                    }" 
+                    :style="{width: `${(clickProgress / requiredClicks) * 100}%`}">
+                  <div class="progress-sparks" v-if="clickProgress > requiredClicks * 0.3"></div>
+                </div>
+              </div>
+              <div class="progress-glow"></div>
+            </div>
+            <div class="prompt-arrow" :class="{
+              'flashing': clickProgress > 0, 
+              'intense-flash': clickProgress > requiredClicks * 0.5, 
+              'urgent-flash': clickProgress > requiredClicks * 0.8,
+              'attention-arrow': clickProgress === 0
+            }">
+              <span v-if="clickProgress === 0">👆 点击木门 👆</span>
+              <span v-else>→</span>
+            </div>
+          </div>
+          
+          <!-- 点击指示器 -->
+          <div v-if="!doorsOpen && clickProgress === 0" class="click-indicators">
+            <div class="click-indicator left"></div>
+            <div class="click-indicator right"></div>
+          </div>
+          
+          <!-- Slot machine behind doors -->
+          <div class="slot-machine" v-show="doorsOpen">
+            <div class="title">幸运转轮</div>
+            
+            <div class="reels-container">
+              <div class="reel" ref="reel1">
+                <div class="symbol-container" v-for="(symbol, index) in symbols" :key="`reel1-${index}`">
+                  <img :src="`/images/symbols/${symbol}.png`" :alt="symbol" class="symbol-image" />
+                </div>
+              </div>
+              
+              <div class="reel" ref="reel2">
+                <div class="symbol-container" v-for="(symbol, index) in symbols" :key="`reel2-${index}`">
+                  <img :src="`/images/symbols/${symbol}.png`" :alt="symbol" class="symbol-image" />
+                </div>
+              </div>
+              
+              <div class="reel" ref="reel3">
+                <div class="symbol-container" v-for="(symbol, index) in symbols" :key="`reel3-${index}`">
+                  <img :src="`/images/symbols/${symbol}.png`" :alt="symbol" class="symbol-image" />
+                </div>
+              </div>
+            </div>
+            
+            <div class="digital-display" ref="digitalDisplay">
+              <div class="display-value">{{ displayValue }}</div>
+            </div>
+            
+            <button class="spin-button" @click="spinSlots" :disabled="spinning">
+              {{ spinning ? '旋转中...' : '开始' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue';
+
+// Type declaration for the window.soundEffects property
+declare global {
+  interface Window {
+    soundEffects?: {
+      impact: () => void;
+      doorOpen: () => void;
+      doorCreak: () => void;
+      doorKnock: () => void;
+      templeChime: () => void;
+      slotSpin: () => void;
+    }
+  }
+}
+
+// Props and emits
+const props = defineProps({
+  show: {
+    type: Boolean,
+    default: false
+  }
+});
+
+const emit = defineEmits(['close', 'reward']);
+
+// Refs for DOM elements
+const reel1 = ref<HTMLElement | null>(null);
+const reel2 = ref<HTMLElement | null>(null);
+const reel3 = ref<HTMLElement | null>(null);
+const digitalDisplay = ref<HTMLElement | null>(null);
+
+// State variables
+const doorsOpen = ref(false);
+const spinning = ref(false);
+const displayValue = ref('000');
+const spinComplete = ref(false);
+const clickProgress = ref(0);
+const requiredClicks = ref(12); // 增加点击次数
+const clickCooldown = ref(false);
+const doorResistance = ref(0); // 门的阻力值，会随点击增加而变化
+const doorMovement = ref({ left: 0, right: 0 }); // 门的当前移动位置
+const doorJitter = ref({ left: 0, right: 0 }); // 门的抖动值
+
+// Available symbols for the slot machine
+const symbols = [
+  'cherry', 'bell', 'lemon', 'orange', 'plum', 'seven', 'watermelon', 'bar'
+];
+
+// Sound effects
+const sounds = {
+  doorOpen: new Audio('/sounds/door-open.mp3'),
+  slotSpin: new Audio('/sounds/slot-spin.mp3'),
+  slotStop: new Audio('/sounds/slot-stop.mp3'),
+  win: new Audio('/sounds/win.mp3'),
+  lose: new Audio('/sounds/lose.mp3'),
+  impact: new Audio('/sounds/impact.mp3'),
+  doorCreak: new Audio('/sounds/door-creak.mp3'),
+  doorKnock: new Audio('/sounds/door-knock.mp3'),
+  bgmTemple: new Audio('/sounds/temple-ambience.mp3'),
+  bgmSlot: new Audio('/sounds/slot-machine-bgm.mp3'),
+  slotCoins: new Audio('/sounds/slot-coins.mp3'),
+  slotAnnounce: new Audio('/sounds/slot-announce.mp3'),
+  doorSliding: new Audio('/sounds/door-sliding.mp3'),
+  templeChime: new Audio('/sounds/temple-chime.mp3')
+};
+
+// Mute all sounds initially (loading them)
+Object.values(sounds).forEach(sound => {
+  sound.volume = 0;
+  sound.muted = true;
+});
+
+// 循环播放背景音乐
+const loopAudio = (audio: HTMLAudioElement, volume: number) => {
+  audio.volume = volume;
+  audio.muted = false;
+  audio.loop = true;
+  audio.play().catch(err => console.error('Error playing audio:', err));
+};
+
+// 停止音频
+const stopAudio = (audio: HTMLAudioElement) => {
+  audio.pause();
+  audio.currentTime = 0;
+};
+
+// Watch for the modal showing
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    // 播放冲击音效
+    playSound('impact');
+    
+    // Play temple chime with delay
+    setTimeout(() => {
+      if (window.soundEffects?.templeChime) {
+        window.soundEffects.templeChime();
+      } else {
+        playSound('templeChime');
+      }
+    }, 300);
+    
+    // 播放神社环境音乐
+    loopAudio(sounds.bgmTemple, 0.3);
+    
+    // 模态框显示时，门处于关闭状态，等待用户点击打开
+    doorsOpen.value = false;
+    clickProgress.value = 0;
+  } else {
+    // 停止所有背景音乐
+    stopAudio(sounds.bgmTemple);
+    stopAudio(sounds.bgmSlot);
+    
+    // 重置状态
+    doorsOpen.value = false;
+    spinComplete.value = false;
+    displayValue.value = '000';
+    clickProgress.value = 0;
+  }
+});
+
+// 处理门的点击
+const handleDoorClick = () => {
+  if (doorsOpen.value || clickCooldown.value) return;
+  
+  // 添加点击反馈效果
+  const leftDoor = document.querySelector('.sliding-door.left') as HTMLElement;
+  const rightDoor = document.querySelector('.sliding-door.right') as HTMLElement;
+  
+  if (leftDoor && rightDoor) {
+    // 移除之前的动画类
+    leftDoor.classList.remove('door-click-feedback');
+    rightDoor.classList.remove('door-click-feedback');
+    
+    // 触发重排以确保动画重新开始
+    void leftDoor.offsetWidth;
+    void rightDoor.offsetWidth;
+    
+    // 添加点击反馈动画类
+    leftDoor.classList.add('door-click-feedback');
+    rightDoor.classList.add('door-click-feedback');
+  }
+  
+  // 防止过快点击
+  clickCooldown.value = true;
+  setTimeout(() => {
+    clickCooldown.value = false;
+  }, 50);
+  
+  // 增加点击进度
+  clickProgress.value++;
+  
+  // 更新门的抖动值
+  updateDoorJitter();
+  
+  // 计算阻力系数 - 随着接近完成，阻力会变化呈现"卡顿后松开"效果
+  if (clickProgress.value < requiredClicks.value * 0.7) {
+    doorResistance.value += 0.2; // 阻力逐渐增加
+  } else {
+    doorResistance.value = Math.max(0, doorResistance.value - 0.5); // 阻力开始减小
+  }
+  
+  // 播放门吱呀声
+  playDoorCreakSound();
+  
+  // 为强调视觉效果，在关键节点产生额外的门震动
+  if (clickProgress.value % 3 === 0 || clickProgress.value >= requiredClicks.value * 0.8) {
+    applyDoorShake(Math.ceil(clickProgress.value / (requiredClicks.value / 5)));
+  }
+  
+  // 检查是否达到所需点击次数
+  if (clickProgress.value >= requiredClicks.value) {
+    // 最后的开门音效
+    playSound('doorOpen');
+    playSound('doorSliding');
+    
+    // 给门添加"最终冲刺"动画
+    if (leftDoor && rightDoor) {
+      leftDoor.style.transition = 'transform 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+      rightDoor.style.transition = 'transform 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+    }
+    
+    // 延迟一点，让门先滑动到最大位置，再设置为完全打开
+    setTimeout(() => {
+      doorsOpen.value = true;
+      
+      // 停止神社环境音乐，切换到老虎机背景音乐
+      fadeOutAudio(sounds.bgmTemple, 1000);
+      setTimeout(() => {
+        // 播放欢迎音效
+        playSound('slotAnnounce');
+        // 播放投币音效
+        setTimeout(() => playSound('slotCoins'), 600);
+        // 播放背景音乐
+        setTimeout(() => loopAudio(sounds.bgmSlot, 0.4), 1200);
+      }, 500);
+      
+      // 重置点击计数
+      clickProgress.value = 0;
+      doorResistance.value = 0;
+      doorJitter.value = { left: 0, right: 0 };
+    }, 600);
+  }
+};
+
+// 淡出音频
+const fadeOutAudio = (audio: HTMLAudioElement, duration: number) => {
+  const originalVolume = audio.volume;
+  const volumeStep = originalVolume / (duration / 50);
+  const fadeInterval = setInterval(() => {
+    if (audio.volume > volumeStep) {
+      audio.volume -= volumeStep;
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = originalVolume;
+      clearInterval(fadeInterval);
+    }
+  }, 50);
+};
+
+// 更新门的抖动值
+const updateDoorJitter = () => {
+  // 在不同阶段有不同的抖动特性
+  const progress = clickProgress.value / requiredClicks.value;
+  
+  if (progress < 0.3) {
+    // 初始阶段：小幅度均匀抖动
+    doorJitter.value = {
+      left: Math.random() * 2,
+      right: Math.random() * 2
+    };
+  } else if (progress < 0.7) {
+    // 中间阶段：较大抖动，表现"卡住"效果
+    doorJitter.value = {
+      left: Math.random() * 4 - 1, // 有时会略微回弹
+      right: Math.random() * 4 - 1
+    };
+  } else {
+    // 最后阶段：大幅度但更不规则的抖动，表现"即将突破"
+    doorJitter.value = {
+      left: (Math.random() * 5 - 1) * (Math.random() > 0.7 ? 1.5 : 1),
+      right: (Math.random() * 5 - 1) * (Math.random() > 0.7 ? 1.5 : 1)
+    };
+  }
+};
+
+// 播放声音效果
+const playSound = (soundName: keyof typeof sounds) => {
+  // 提高音量以确保音效更加明显
+  try {
+    // 优先使用 Web Audio API 生成器
+    if (window.soundEffects) {
+      if (soundName === 'impact' && window.soundEffects.impact) {
+        // 播放两次冲击音效以确保音量足够
+        window.soundEffects.impact();
+        setTimeout(() => window.soundEffects?.impact && window.soundEffects.impact(), 10);
+        return;
+      }
+      
+      if (soundName === 'doorOpen' && window.soundEffects.doorOpen) {
+        window.soundEffects.doorOpen();
+        return;
+      }
+      
+      if (soundName === 'doorCreak' && window.soundEffects.doorCreak) {
+        window.soundEffects.doorCreak();
+        return;
+      }
+      
+      if (soundName === 'doorKnock' && window.soundEffects.doorKnock) {
+        window.soundEffects.doorKnock();
+        return;
+      }
+      
+      if (soundName === 'templeChime' && window.soundEffects.templeChime) {
+        window.soundEffects.templeChime();
+        return;
+      }
+      
+      if (soundName === 'slotSpin' && window.soundEffects.slotSpin) {
+        window.soundEffects.slotSpin();
+        return;
+      }
+    }
+    
+    // 回退到音频文件
+    const sound = sounds[soundName];
+    if (sound) {
+      // 根据不同音效设置不同音量，整体提高音量
+      switch (soundName) {
+        case 'doorOpen':
+          sound.volume = 0.7;
+          break;
+        case 'doorSliding':
+          sound.volume = 0.8;
+          break;
+        case 'slotAnnounce':
+          sound.volume = 0.9;
+          break;
+        case 'slotCoins':
+          sound.volume = 0.8;
+          break;
+        case 'templeChime':
+          sound.volume = 0.6;
+          break;
+        case 'impact':
+          sound.volume = 0.9;
+          break;
+        default:
+          sound.volume = 0.8;
+      }
+      sound.muted = false;
+      sound.currentTime = 0;
+      sound.play().catch(err => console.error('Error playing sound:', err));
+    }
+  } catch (error) {
+    console.error('Error playing sound:', error);
+  }
+};
+
+// 播放门吱呀声
+const playDoorCreakSound = () => {
+  try {
+    // 优先使用 Web Audio API 生成器
+    if (window.soundEffects?.doorCreak) {
+      window.soundEffects.doorCreak();
+      
+      // 添加额外的点击声效，根据进度使用不同的延迟
+      const progress = clickProgress.value / requiredClicks.value;
+      setTimeout(() => {
+        if (window.soundEffects?.doorKnock) {
+          window.soundEffects.doorKnock();
+        }
+      }, progress < 0.5 ? 150 : 100);
+      
+      return;
+    }
+    
+    // 回退到音频文件
+    const doorCreakSound = new Audio('/sounds/door-creak.mp3');
+    
+    // 根据进度计算音量和音高
+    const progress = clickProgress.value / requiredClicks.value;
+    
+    if (progress < 0.3) {
+      // 初始轻微吱呀声
+      doorCreakSound.volume = 0.3 + Math.random() * 0.1;
+      doorCreakSound.playbackRate = 0.5 + Math.random() * 0.2;
+    } else if (progress < 0.7) {
+      // 中间卡顿的摩擦声
+      doorCreakSound.volume = 0.4 + Math.random() * 0.15;
+      doorCreakSound.playbackRate = 0.3 + Math.random() * 0.3;
+    } else {
+      // 最后阶段挣扎的声音
+      doorCreakSound.volume = 0.6 + Math.random() * 0.2;
+      doorCreakSound.playbackRate = 0.8 + Math.random() * 0.5;
+    }
+    
+    doorCreakSound.play().catch(err => console.error('Error playing sound:', err));
+    
+    // 添加额外的点击声效
+    const clickIntensity = Math.min(0.5 + progress * 0.3, 0.8);
+    const clickSound = new Audio('/sounds/door-knock.mp3');
+    clickSound.volume = clickIntensity;
+    clickSound.playbackRate = 0.9 + progress * 0.4;
+    clickSound.play().catch(err => console.error('Error playing sound:', err));
+  } catch (error) {
+    console.error('Error playing door creak sound:', error);
+  }
+};
+
+// 应用门的震动效果
+const applyDoorShake = (intensity: number) => {
+  // 获取门元素
+  const leftDoor = document.querySelector('.sliding-door.left') as HTMLElement;
+  const rightDoor = document.querySelector('.sliding-door.right') as HTMLElement;
+  
+  if (!leftDoor || !rightDoor) return;
+  
+  // 获取当前门的位置，并设置为CSS自定义属性
+  const leftTransform = getLeftDoorTransform();
+  const rightTransform = getRightDoorTransform();
+  
+  leftDoor.style.setProperty('--tx', leftTransform);
+  rightDoor.style.setProperty('--tx', rightTransform);
+  
+  // 移除现有的震动类
+  [leftDoor, rightDoor].forEach(door => {
+    door.classList.remove('door-vibrate', 'door-shake-light', 'door-shake-medium', 'door-shake-strong');
+    
+    // 添加基于强度的震动类
+    if (intensity <= 1) {
+      door.classList.add('door-shake-light');
+    } else if (intensity <= 3) {
+      door.classList.add('door-shake-medium');
+    } else {
+      door.classList.add('door-shake-strong');
+    }
+    
+    // 重置动画
+    void door.offsetWidth;
+  });
+};
+
+// Close the modal
+const closeModal = () => {
+  if (spinning.value) return; // Prevent closing while spinning
+  
+  // If spin completed, close directly
+  if (spinComplete.value) {
+    emit('close');
+  } else {
+    // Otherwise close the doors first, then emit close event
+    doorsOpen.value = false;
+    setTimeout(() => {
+      emit('close');
+    }, 800);
+  }
+};
+
+// Spin the slot machine
+const spinSlots = async () => {
+  if (spinning.value) return;
+  
+  spinning.value = true;
+  
+  // Play slot spin sound
+  if (window.soundEffects?.slotSpin) {
+    window.soundEffects.slotSpin();
+  } else {
+    playSound('slotSpin');
+  }
+  
+  // 暂时降低背景音乐音量
+  const originalVolume = sounds.bgmSlot.volume;
+  sounds.bgmSlot.volume = originalVolume * 0.3;
+  
+  // Generate random results
+  const results = [
+    Math.floor(Math.random() * symbols.length),
+    Math.floor(Math.random() * symbols.length),
+    Math.floor(Math.random() * symbols.length)
+  ];
+  
+  // Calculate reward
+  let reward = 0;
+  const resultSymbols = results.map(i => symbols[i]);
+  
+  // Check for matches
+  const uniqueSymbols = new Set(resultSymbols);
+  
+  if (uniqueSymbols.size === 1) {
+    // All three symbols match - jackpot!
+    const symbol = resultSymbols[0];
+    reward = symbol === 'seven' ? 777 : 
+             symbol === 'bar' ? 500 :
+             symbol === 'bell' ? 300 : 100;
+  } else if (uniqueSymbols.size === 2) {
+    // Two symbols match
+    reward = 50;
+  } else {
+    // No matches
+    reward = 10; // Consolation prize
+  }
+  
+  // Animate the reels
+  await Promise.all([
+    animateReel(reel1.value, results[0], 1000),
+    animateReel(reel2.value, results[1], 1500),
+    animateReel(reel3.value, results[2], 2000)
+  ]);
+  
+  // Update the display and play sound
+  for (let i = 0; i <= reward; i += Math.max(1, Math.floor(reward / 50))) {
+    displayValue.value = i.toString().padStart(3, '0');
+    await new Promise(r => setTimeout(r, 10));
+  }
+  displayValue.value = reward.toString().padStart(3, '0');
+  
+  // Play win or lose sound
+  playSound(reward >= 100 ? 'win' : 'lose');
+  
+  // 如果是大奖，播放投币音效
+  if (reward >= 300) {
+    setTimeout(() => playSound('slotCoins'), 800);
+  }
+  
+  // 恢复背景音乐音量
+  setTimeout(() => {
+    sounds.bgmSlot.volume = originalVolume;
+  }, 1000);
+  
+  // Emit the reward
+  emit('reward', {
+    amount: reward,
+    symbols: resultSymbols
+  });
+  
+  spinning.value = false;
+  spinComplete.value = true;
+  
+  // Auto-close after reward display
+  setTimeout(closeModal, 3000);
+};
+
+// Animate a single reel
+const animateReel = async (reelElement: HTMLElement | null, targetIndex: number, duration: number) => {
+  if (!reelElement) return;
+  
+  // Calculate total scroll distance
+  const symbolHeight = 80; // Height of one symbol
+  const totalSymbols = symbols.length;
+  const spins = 2; // Number of complete spins before stopping
+  
+  // Calculate final position
+  const finalPosition = targetIndex * symbolHeight;
+  const totalDistance = (spins * totalSymbols * symbolHeight) + finalPosition;
+  
+  // Animate
+  const startTime = performance.now();
+  const startPosition = 0;
+  
+  return new Promise<void>(resolve => {
+    function step(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      
+      if (elapsed < duration) {
+        // Easing function for slot machine effect
+        const progress = elapsed / duration;
+        const easedProgress = progress < 0.75 
+          ? Math.pow(progress, 2) // Accelerate
+          : 1 - Math.pow(1 - progress, 3); // Decelerate with bounce
+        
+        const currentPosition = startPosition + (easedProgress * totalDistance);
+        
+        // Apply position modulo the total height to create infinite scroll effect
+        const modPosition = currentPosition % (totalSymbols * symbolHeight);
+        if (reelElement) {
+          reelElement.style.transform = `translateY(-${modPosition}px)`;
+        }
+        
+        window.requestAnimationFrame(step);
+      } else {
+        // Snap to exact final position
+        if (reelElement) {
+          reelElement.style.transform = `translateY(-${finalPosition}px)`;
+        }
+        
+        // Play stop sound
+        playSound('slotStop');
+        
+        resolve();
+      }
+    }
+    
+    window.requestAnimationFrame(step);
+  });
+};
+
+// Initialize on mount
+onMounted(() => {
+  // Preload images
+  symbols.forEach(symbol => {
+    const img = new Image();
+    img.src = `/images/symbols/${symbol}.png`;
+  });
+  
+  // Preload additional sounds
+  const preloadSounds = [
+    '/sounds/door-creak.mp3', 
+    '/sounds/door-knock.mp3',
+    '/sounds/temple-ambience.mp3', 
+    '/sounds/slot-machine-bgm.mp3',
+    '/sounds/slot-coins.mp3',
+    '/sounds/slot-announce.mp3',
+    '/sounds/door-sliding.mp3',
+    '/sounds/temple-chime.mp3'
+  ];
+  preloadSounds.forEach(src => {
+    const audio = new Audio();
+    audio.src = src;
+  });
+});
+
+// 根据进度获取不同的提示文字
+const getPromptText = () => {
+  if (clickProgress.value === 0) {
+    return '请连续点击木门！需要多次点击才能拉开门';
+  } else if (clickProgress.value < requiredClicks.value * 0.3) {
+    return `继续点击木门！还需要点击多次 (${clickProgress.value}/${requiredClicks.value})`;
+  } else if (clickProgress.value < requiredClicks.value * 0.6) {
+    return `门有点卡住了，继续猛点！别停 (${clickProgress.value}/${requiredClicks.value})`;
+  } else if (clickProgress.value < requiredClicks.value * 0.9) {
+    return `就快成功了，快速点击！(${clickProgress.value}/${requiredClicks.value})`;
+  } else {
+    return `最后冲刺，继续点击！(${clickProgress.value}/${requiredClicks.value})`;
+  }
+};
+
+// 获取左门的变换样式
+const getLeftDoorTransform = () => {
+  if (doorsOpen.value) {
+    return 'translateX(-100%) translateZ(0) rotateY(4deg)';
+  }
+  
+  if (clickProgress.value === 0) {
+    return 'translateX(0) translateZ(0)';
+  }
+  
+  // 计算基本移动进度，呈现非线性效果
+  let baseProgress = Math.pow(clickProgress.value / requiredClicks.value, 1.5) * 100;
+  
+  // 添加随机抖动效果，随着进度增加而减小（门越拉越稳定）
+  const jitterFactor = Math.max(0, 1 - clickProgress.value / requiredClicks.value);
+  const jitter = doorJitter.value.left * jitterFactor;
+  
+  // 设置CSS自定义属性用于3D旋转
+  const leftDoor = document.querySelector('.sliding-door.left') as HTMLElement;
+  if (leftDoor) {
+    leftDoor.style.setProperty('--transform-amount', String(Math.min(baseProgress + jitter, 99)));
+  }
+  
+  return `translateX(-${Math.min(baseProgress + jitter, 99)}%) translateZ(0) rotateY(${Math.min(baseProgress + jitter, 99) * 0.05}deg)`;
+};
+
+// 获取右门的变换样式
+const getRightDoorTransform = () => {
+  if (doorsOpen.value) {
+    return 'translateX(100%) translateZ(0) rotateY(-4deg)';
+  }
+  
+  if (clickProgress.value === 0) {
+    return 'translateX(0) translateZ(0)';
+  }
+  
+  // 计算基本移动进度，呈现非线性效果
+  let baseProgress = Math.pow(clickProgress.value / requiredClicks.value, 1.5) * 100;
+  
+  // 添加随机抖动效果，随着进度增加而减小
+  const jitterFactor = Math.max(0, 1 - clickProgress.value / requiredClicks.value);
+  const jitter = doorJitter.value.right * jitterFactor;
+  
+  // 设置CSS自定义属性用于3D旋转
+  const rightDoor = document.querySelector('.sliding-door.right') as HTMLElement;
+  if (rightDoor) {
+    rightDoor.style.setProperty('--transform-amount', String(Math.min(baseProgress + jitter, 99)));
+  }
+  
+  return `translateX(${Math.min(baseProgress + jitter, 99)}%) translateZ(0) rotateY(-${Math.min(baseProgress + jitter, 99) * 0.05}deg)`;
+};
+</script>
+
+<style scoped>
+.japanese-door-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.impact-effect {
+  animation: screen-shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 1001;
+}
+
+.modal-content {
+  position: relative;
+  z-index: 1002;
+  width: 95%;
+  max-width: 600px; /* 增加门的宽度 */
+  aspect-ratio: 16/9; /* 更宽的比例 */
+  transform: translateY(0);
+  animation: appear 0.5s ease-out;
+}
+
+.slam-effect {
+  animation: slam 0.6s cubic-bezier(.17,.67,.35,1.3) both;
+}
+
+.door-frame {
+  width: 100%;
+  height: 100%;
+  background-color: #0e0e0e; /* 更深的背景色 */
+  border: 12px solid #2a1a0c;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.8),
+    inset 0 0 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: 
+    linear-gradient(to right, rgba(30, 15, 5, 0.7), rgba(30, 15, 5, 0.3), rgba(30, 15, 5, 0.7)),
+    url("data:image/svg+xml,%3Csvg width='152' height='152' viewBox='0 0 152 152' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M152 76c0 42-34 76-76 76S0 118 0 76 34 0 76 0s76 34 76 76zm0 0' fill='%23261207' fill-opacity='0.05'/%3E%3C/svg%3E");
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+/* 环境光效果 */
+.ambient-lighting {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  background: 
+    radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 245, 235, 0.15) 0%,
+      rgba(255, 240, 220, 0.05) 30%,
+      rgba(0, 0, 0, 0) 70%
+    ),
+    radial-gradient(
+      circle at 70% 60%,
+      rgba(255, 245, 235, 0.1) 0%,
+      rgba(255, 240, 220, 0.03) 40%,
+      rgba(0, 0, 0, 0) 70%
+    );
+  opacity: 0.8;
+}
+
+/* 门顶框 */
+.door-top-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 25px;
+  background-color: #2a1a0c;
+  z-index: 4;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 3px rgba(255, 255, 255, 0.1);
+  background-image: 
+    linear-gradient(to bottom, 
+      rgba(58, 36, 18, 1), 
+      rgba(42, 26, 12, 1) 70%, 
+      rgba(30, 18, 8, 1)),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 50px,
+      rgba(0, 0, 0, 0.1) 50px,
+      rgba(0, 0, 0, 0.1) 100px
+    );
+}
+
+.door-top-frame::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to bottom, 
+    rgba(0, 0, 0, 0.2), 
+    transparent);
+}
+
+.door-top-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.15);
+  z-index: 1;
+}
+
+.sliding-door {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), filter 0.15s ease;
+  z-index: 2;
+  box-shadow: 
+    0 0 20px rgba(0, 0, 0, 0.7),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  background-color: #54301c; /* 深木色背景 */
+  background-image: 
+    linear-gradient(to bottom, 
+      rgba(96, 56, 32, 1), 
+      rgba(84, 48, 28, 1) 80%, 
+      rgba(72, 40, 24, 1)),
+    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23382212' fill-opacity='0.15' d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z'/%3E%3C/svg%3E");
+  overflow: hidden;
+}
+
+.sliding-door::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0) 50%, 
+    rgba(0, 0, 0, 0.1) 100%);
+  pointer-events: none;
+}
+
+/* 木框效果增强 */
+.door-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 18%;
+  width: 100%;
+  background-color: #3d2213;
+  border-top: 2px solid #221306;
+  box-shadow: 
+    0 -2px 5px rgba(0, 0, 0, 0.4),
+    inset 0 5px 10px rgba(0, 0, 0, 0.2);
+  z-index: 3;
+  background-image: 
+    linear-gradient(
+      to bottom,
+      #3d2213,
+      #4a2a18 20%,
+      #3d2213 80%,
+      #302010
+    );
+  overflow: hidden;
+}
+
+.wood-grain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h200v200H0V0zm160 60c33.37 0 60.37-26.6 60-60H60c-.37 33.4 26.63 60 60 60h40zm0 80c33.37 0 60.37-26.6 60-60H60c-.37 33.4 26.63 60 60 60h40z' fill='%23301e10' fill-opacity='0.3' fill-rule='evenodd'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 10px,
+      rgba(24, 12, 0, 0.03) 10px,
+      rgba(24, 12, 0, 0.03) 14px
+    );
+  opacity: 0.8;
+}
+
+.wood-grain::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.1)
+  );
+}
+
+/* 门把手增强 */
+.door-handle {
+  position: absolute;
+  width: 14px;
+  height: 75px;
+  background-color: #111;
+  border: 1px solid #000;
+  border-radius: 7px;
+  top: 50%;
+  transform: translateY(-50%) translateZ(2px);
+  box-shadow: 
+    0 0 8px rgba(0, 0, 0, 0.7), 
+    inset 0 0 3px rgba(255, 255, 255, 0.1),
+    2px 2px 6px rgba(0, 0, 0, 0.6);
+  z-index: 4;
+  background-image: linear-gradient(
+    to right,
+    #080808,
+    #1a1a1a 30%,
+    #080808 70%,
+    #000000
+  );
+}
+
+.handle-detail {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 45px;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.handle-detail::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+}
+
+.handle-detail::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+}
+
+/* 滑动门立体效果增强 */
+.sliding-door {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), filter 0.15s ease;
+  z-index: 2;
+  box-shadow: 
+    0 0 20px rgba(0, 0, 0, 0.7),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  background-color: #54301c; /* 深木色背景 */
+  background-image: 
+    linear-gradient(to bottom, 
+      rgba(96, 56, 32, 1), 
+      rgba(84, 48, 28, 1) 80%, 
+      rgba(72, 40, 24, 1)),
+    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23382212' fill-opacity='0.15' d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z'/%3E%3C/svg%3E");
+  overflow: hidden;
+}
+
+.sliding-door::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0) 50%, 
+    rgba(0, 0, 0, 0.1) 100%);
+  pointer-events: none;
+}
+
+/* 门底部木框增强 */
+.door-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 18%;
+  width: 100%;
+  background-color: #3d2213;
+  border-top: 2px solid #221306;
+  box-shadow: 
+    0 -2px 5px rgba(0, 0, 0, 0.4),
+    inset 0 5px 10px rgba(0, 0, 0, 0.2);
+  z-index: 3;
+  background-image: 
+    linear-gradient(
+      to bottom,
+      #3d2213,
+      #4a2a18 20%,
+      #3d2213 80%,
+      #302010
+    );
+  overflow: hidden;
+}
+
+.wood-grain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h200v200H0V0zm160 60c33.37 0 60.37-26.6 60-60H60c-.37 33.4 26.63 60 60 60h40zm0 80c33.37 0 60.37-26.6 60-60H60c-.37 33.4 26.63 60 60 60h40z' fill='%23301e10' fill-opacity='0.3' fill-rule='evenodd'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 10px,
+      rgba(24, 12, 0, 0.03) 10px,
+      rgba(24, 12, 0, 0.03) 14px
+    );
+  opacity: 0.8;
+}
+
+.wood-grain::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.1)
+  );
+}
+
+/* 增强门的震动动画 */
+@keyframes door-shake-strong {
+  0% { transform: translateX(0) rotateY(0deg) translateZ(0); }
+  15% { transform: translateX(-8px) rotateY(-1deg) translateZ(0); }
+  30% { transform: translateX(7px) rotateY(0.8deg) translateZ(0); }
+  45% { transform: translateX(-6px) rotateY(-0.6deg) translateZ(0); }
+  60% { transform: translateX(6px) rotateY(0.5deg) translateZ(0); }
+  75% { transform: translateX(-4px) rotateY(-0.3deg) translateZ(0); }
+  90% { transform: translateX(4px) rotateY(0.2deg) translateZ(0); }
+  100% { transform: translateX(0) rotateY(0deg) translateZ(0); }
+}
+
+/* 点击效果增强 */
+.sliding-door:active {
+  filter: brightness(1.1);
+  box-shadow: 
+    0 0 30px rgba(255, 255, 255, 0.15), 
+    inset 0 0 40px rgba(255, 255, 255, 0.15),
+    0 0 5px rgba(255, 166, 0, 0.2);
+  transform: scale(0.995) !important;
+  transition: transform 0.05s ease, filter 0.05s ease, box-shadow 0.05s ease;
+}
+
+/* 门悬浮效果 */
+.sliding-door:hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+/* 不同难度等级的门移动效果增强 */
+.sliding-door.difficulty-level-1 {
+  transition: transform 0.15s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.sliding-door.difficulty-level-2 {
+  transition: transform 0.18s cubic-bezier(0.34, 0.31, 0.36, 1);
+}
+
+.sliding-door.difficulty-level-3 {
+  transition: transform 0.2s cubic-bezier(0.42, 0.01, 0.58, 1);
+}
+
+.sliding-door.difficulty-level-4 {
+  transition: transform 0.25s cubic-bezier(0.65, 0.05, 0.36, 1) 0.02s;
+}
+
+.sliding-door.difficulty-level-5 {
+  transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.1) 0.03s;
+}
+
+.sliding-door.final-push {
+  transition: transform 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0.05s;
+}
+
+/* 增强点击反馈动画 */
+@keyframes door-click-feedback {
+  0% { filter: brightness(1); transform: scale(1); }
+  40% { filter: brightness(1.25); transform: scale(0.995); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+.door-click-feedback {
+  animation: door-click-feedback 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Shadow effects for more depth */
+.sliding-door.left::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 8px;
+  background: linear-gradient(to left, 
+    rgba(0, 0, 0, 0.5), 
+    rgba(0, 0, 0, 0.3) 40%, 
+    rgba(0, 0, 0, 0) 100%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.sliding-door.right::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 8px;
+  background: linear-gradient(to right, 
+    rgba(0, 0, 0, 0.5), 
+    rgba(0, 0, 0, 0.3) 40%, 
+    rgba(0, 0, 0, 0) 100%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* 提示文字 */
+.door-prompt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 215, 0, 0.7);
+  text-align: center;
+  z-index: 1;
+  animation: pulse 2s infinite;
+  pointer-events: none;
+  width: 80%;
+  max-width: 300px;
+}
+
+.prompt-text {
+  font-size: 18px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: bold;
+}
+
+.attention-text {
+  animation: attention-text 1.5s infinite;
+  font-size: 20px;
+  color: #ffcc00;
+  text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+}
+
+.progress-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.progress-bar-wrapper {
+  width: 100%;
+  height: 14px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.3), inset 0 0 8px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f5cd79, #f19066, #f0932b);
+  border-radius: 6px;
+  transition: width 0.15s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-sparks {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 30px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.3), rgba(255,255,255,0.8));
+  filter: blur(1px);
+  animation: spark-effect 0.8s ease-out infinite;
+}
+
+.progress-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 7px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pulse-progress {
+  animation: pulse-glow 1.2s infinite;
+  box-shadow: 0 0 5px 1px rgba(255, 215, 0, 0.3);
+}
+
+.intense-pulse {
+  animation: intense-pulse-glow 0.8s infinite;
+  background: linear-gradient(90deg, #f5cd79, #f0932b, #eb4d4b);
+}
+
+.final-pulse {
+  animation: final-pulse-glow 0.6s infinite;
+  background: linear-gradient(90deg, #f0932b, #eb4d4b, #ff9f43);
+  box-shadow: 0 0 10px 2px rgba(255, 165, 0, 0.7);
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 5px 1px rgba(255, 215, 0, 0.3); }
+  50% { box-shadow: 0 0 10px 3px rgba(255, 215, 0, 0.7); }
+  100% { box-shadow: 0 0 5px 1px rgba(255, 215, 0, 0.3); }
+}
+
+@keyframes intense-pulse-glow {
+  0% { box-shadow: 0 0 8px 2px rgba(255, 165, 0, 0.4); }
+  50% { box-shadow: 0 0 15px 4px rgba(255, 165, 0, 0.8); }
+  100% { box-shadow: 0 0 8px 2px rgba(255, 165, 0, 0.4); }
+}
+
+@keyframes final-pulse-glow {
+  0% { box-shadow: 0 0 10px 2px rgba(255, 69, 0, 0.5); }
+  50% { box-shadow: 0 0 20px 5px rgba(255, 69, 0, 0.9); }
+  100% { box-shadow: 0 0 10px 2px rgba(255, 69, 0, 0.5); }
+}
+
+@keyframes spark-effect {
+  0% { transform: translateX(100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(-100%); opacity: 0; }
+}
+
+.prompt-arrow {
+  font-size: 32px;
+  animation: slideRight 1s infinite alternate;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  margin-top: 10px;
+  line-height: 1.2;
+}
+
+.attention-arrow {
+  font-size: 26px;
+  color: #ffcc00;
+  animation: attention-arrow 1.5s infinite !important;
+  text-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+}
+
+.flashing {
+  animation: flash 1s infinite !important;
+}
+
+.intense-flash {
+  animation: intense-flash 0.8s infinite !important;
+  color: #ffa500;
+}
+
+.urgent-flash {
+  animation: urgent-flash 0.5s infinite !important;
+  color: #ff4500;
+  font-size: 38px;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+@keyframes slideRight {
+  from { transform: translateX(-5px); }
+  to { transform: translateX(5px); }
+}
+
+/* 新增震动动画 */
+@keyframes door-shake-light {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes door-shake-medium {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+
+.door-shake-light {
+  animation: door-shake-light 0.3s ease both;
+}
+
+.door-shake-medium {
+  animation: door-shake-medium 0.4s ease both;
+}
+
+@keyframes screen-shake {
+  0% { transform: translate(0, 0) rotate(0); }
+  2% { transform: translate(-4px, -4px) rotate(-0.5deg); }
+  4% { transform: translate(4px, -4px) rotate(0.5deg); }
+  6% { transform: translate(-4px, 4px) rotate(-0.5deg); }
+  8% { transform: translate(4px, 4px) rotate(0.5deg); }
+  10% { transform: translate(-4px, -4px) rotate(-0.5deg); }
+  12% { transform: translate(4px, -4px) rotate(0.5deg); }
+  14% { transform: translate(-4px, 4px) rotate(-0.5deg); }
+  16% { transform: translate(4px, 4px) rotate(0.5deg); }
+  18% { transform: translate(-2px, -2px) rotate(-0.25deg); }
+  20% { transform: translate(2px, -2px) rotate(0.25deg); }
+  22% { transform: translate(-2px, 2px) rotate(-0.25deg); }
+  24% { transform: translate(2px, 2px) rotate(0.25deg); }
+  26% { transform: translate(-1px, -1px) rotate(-0.1deg); }
+  28% { transform: translate(1px, -1px) rotate(0.1deg); }
+  30% { transform: translate(-1px, 1px) rotate(-0.1deg); }
+  32% { transform: translate(1px, 1px) rotate(0.1deg); }
+  34% { transform: translate(-0.5px, -0.5px) rotate(-0.05deg); }
+  36% { transform: translate(0.5px, -0.5px) rotate(0.05deg); }
+  38% { transform: translate(-0.5px, 0.5px) rotate(-0.05deg); }
+  40% { transform: translate(0.5px, 0.5px) rotate(0.05deg); }
+  42% { transform: translate(0, 0) rotate(0); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+
+@keyframes slam {
+  0% { transform: scale(0.8) translateY(50px); opacity: 0; }
+  40% { transform: scale(1.1) translateY(-20px); opacity: 1; }
+  70% { transform: scale(0.95) translateY(10px); }
+  85% { transform: scale(1.025) translateY(-5px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+/* Slot Machine Styles */
+.slot-machine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e1e3f, #2d2b55);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 28px;
+  color: gold;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+  margin-bottom: 15px;
+  font-weight: bold;
+  background: -webkit-linear-gradient(#FFD700, #FFA500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+}
+
+.title::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    rgba(255,215,0,0), 
+    rgba(255,215,0,0.8), 
+    rgba(255,215,0,0));
+}
+
+.reels-container {
+  width: 100%;
+  max-width: 400px;
+  height: 240px;
+  background: #111;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 
+              0 0 15px rgba(255, 215, 0, 0.2);
+  margin-bottom: 15px;
+  overflow: hidden;
+  border: 2px solid #333;
+}
+
+.reel {
+  width: 30%;
+  height: 100%;
+  background: #222;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+  border: 1px solid #444;
+}
+
+.symbol-container {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.symbol-container:nth-child(even) {
+  background-color: rgba(10, 10, 40, 0.2);
+}
+
+.symbol-image {
+  width: 80%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.3));
+}
+
+.digital-display {
+  width: 100%;
+  max-width: 300px;
+  height: 50px;
+  background-color: #000;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  border: 3px solid #444;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8),
+              0 0 10px rgba(255, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.digital-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
+  z-index: 1;
+}
+
+.display-value {
+  font-family: 'Digital', monospace;
+  font-size: 32px;
+  color: #f00;
+  letter-spacing: 5px;
+  text-shadow: 0 0 5px rgba(255, 0, 0, 0.7);
+}
+
+.spin-button {
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #f00, #900);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
+              0 0 15px rgba(255, 0, 0, 0.3);
+  transition: all 0.2s;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  border: 1px solid #f00;
+}
+
+.spin-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3),
+              0 0 20px rgba(255, 0, 0, 0.4);
+  background: linear-gradient(135deg, #f00, #c00);
+}
+
+.spin-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.spin-button:disabled {
+  background: #888;
+  cursor: not-allowed;
+  border-color: #666;
+}
+
+@keyframes appear {
+  0% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Add digital font face */
+@font-face {
+  font-family: 'Digital';
+  src: url('/fonts/digital.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.sliding-door.left.partially-open {
+  transition: transform 0.15s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.sliding-door.right.partially-open {
+  transition: transform 0.15s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 不同难度等级的门移动效果 */
+.sliding-door.difficulty-level-1 {
+  transition: transform 0.15s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.sliding-door.difficulty-level-2 {
+  transition: transform 0.18s cubic-bezier(0.34, 0.31, 0.36, 1);
+}
+
+.sliding-door.difficulty-level-3 {
+  transition: transform 0.2s cubic-bezier(0.42, 0.01, 0.58, 1);
+}
+
+.sliding-door.difficulty-level-4 {
+  transition: transform 0.25s cubic-bezier(0.65, 0.05, 0.36, 1) 0.02s;
+}
+
+.sliding-door.difficulty-level-5 {
+  transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.1) 0.03s;
+}
+
+.sliding-door.final-push {
+  transition: transform 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0.05s;
+}
+
+/* 震动动画改用transform变量 */
+@keyframes left-door-resistance {
+  0% { transform: translateX(calc(var(--tx) - 2px)); }
+  25% { transform: translateX(calc(var(--tx) + 1.5px)); }
+  50% { transform: translateX(calc(var(--tx) - 1.5px)); }
+  75% { transform: translateX(calc(var(--tx) + 1px)); }
+  100% { transform: translateX(var(--tx)); }
+}
+
+@keyframes right-door-resistance {
+  0% { transform: translateX(calc(var(--tx) + 2px)); }
+  25% { transform: translateX(calc(var(--tx) - 1.5px)); }
+  50% { transform: translateX(calc(var(--tx) + 1.5px)); }
+  75% { transform: translateX(calc(var(--tx) - 1px)); }
+  100% { transform: translateX(var(--tx)); }
+}
+
+/* 滑动和震动同时存在时产生吃力效果 */
+.door-vibrate.partially-open {
+  animation: none; /* 移除通用动画，使用特定的左右门动画 */
+}
+
+.sliding-door.left.door-vibrate.partially-open {
+  animation: left-door-resistance 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.sliding-door.right.door-vibrate.partially-open {
+  animation: right-door-resistance 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* 新增注意力动画 */
+@keyframes attention-text {
+  0% { transform: scale(1); color: #ffcc00; }
+  50% { transform: scale(1.1); color: #ffe066; text-shadow: 0 0 15px rgba(255, 204, 0, 0.9); }
+  100% { transform: scale(1); color: #ffcc00; }
+}
+
+@keyframes attention-arrow {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes intense-flash {
+  0%, 100% { opacity: 1; text-shadow: 0 0 10px rgba(255, 165, 0, 0.7); }
+  50% { opacity: 0.7; text-shadow: 0 0 20px rgba(255, 165, 0, 0.9); }
+}
+
+@keyframes urgent-flash {
+  0%, 100% { opacity: 1; text-shadow: 0 0 15px rgba(255, 69, 0, 0.8); }
+  50% { opacity: 0.8; text-shadow: 0 0 25px rgba(255, 69, 0, 1); }
+}
+
+/* Click feedback animation */
+@keyframes door-click-feedback {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
+  100% { filter: brightness(1); }
+}
+
+.door-click-feedback {
+  animation: door-click-feedback 0.2s ease forwards;
+}
+
+/* 点击指示器 */
+.click-indicators {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.click-indicator {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px dashed rgba(255, 215, 0, 0.6);
+  animation: pulse-indicator 2s infinite;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.click-indicator::after {
+  content: '点这里';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  color: #ffcc00;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+
+.click-indicator.left {
+  right: 30px;
+}
+
+.click-indicator.right {
+  left: 30px;
+}
+
+@keyframes pulse-indicator {
+  0% { 
+    opacity: 0.4; 
+    transform: translateY(-50%) scale(0.8);
+    box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+  }
+  50% { 
+    opacity: 0.9; 
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+  }
+  100% { 
+    opacity: 0.4; 
+    transform: translateY(-50%) scale(0.8);
+    box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+  }
+}
+
+/* Restore door-vibrate class */
+.door-vibrate {
+  animation: door-shake 0.8s cubic-bezier(.36,.07,.19,.97) both;
+  animation-delay: 0.1s;
+}
+
+@keyframes door-shake {
+  0% { transform: translateX(0) rotate(0) translateZ(0); }
+  10% { transform: translateX(-3px) rotate(-0.1deg) translateZ(0); }
+  20% { transform: translateX(3px) rotate(0.1deg) translateZ(0); }
+  30% { transform: translateX(-5px) rotate(-0.2deg) translateZ(0); }
+  40% { transform: translateX(5px) rotate(0.2deg) translateZ(0); }
+  50% { transform: translateX(-3px) rotate(-0.1deg) translateZ(0); }
+  60% { transform: translateX(3px) rotate(0.1deg) translateZ(0); }
+  70% { transform: translateX(-2px) rotate(-0.05deg) translateZ(0); }
+  80% { transform: translateX(2px) rotate(0.05deg) translateZ(0); }
+  90% { transform: translateX(-1px) rotate(0) translateZ(0); }
+  100% { transform: translateX(0) rotate(0) translateZ(0); }
+}
+
+.door-shake-strong {
+  animation: door-shake-strong 0.5s ease both;
+}
+
+/* Door base structure components */
+.sliding-door.left {
+  left: 0;
+  transform: translateX(0) translateZ(0);
+  border-right: 2px solid rgba(20, 10, 0, 0.8);
+  transform-origin: left center;
+  box-shadow: 
+    0 0 20px rgba(0, 0, 0, 0.7),
+    5px 0 15px -5px rgba(0, 0, 0, 0.6),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.sliding-door.left .door-handle {
+  right: 20px;
+}
+
+.sliding-door.left.partially-open {
+  box-shadow: 
+    5px 0 25px -5px rgba(0, 0, 0, 0.8),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+  transform: translateX(calc(var(--transform-amount) * -1%)) translateZ(0) rotateY(calc(var(--transform-amount) * 0.05deg));
+}
+
+.sliding-door.right {
+  right: 0;
+  transform: translateX(0) translateZ(0);
+  border-left: 2px solid rgba(20, 10, 0, 0.8);
+  transform-origin: right center;
+  box-shadow: 
+    0 0 20px rgba(0, 0, 0, 0.7),
+    -5px 0 15px -5px rgba(0, 0, 0, 0.6),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.sliding-door.right .door-handle {
+  left: 20px;
+}
+
+.sliding-door.right.partially-open {
+  box-shadow: 
+    -5px 0 25px -5px rgba(0, 0, 0, 0.8),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+  transform: translateX(calc(var(--transform-amount) * 1%)) translateZ(0) rotateY(calc(var(--transform-amount) * -0.05deg));
+}
+
+.sliding-door.left.open {
+  transform: translateX(-100%) translateZ(0) rotateY(4deg);
+  box-shadow: 
+    5px 0 25px -5px rgba(0, 0, 0, 0.8),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.sliding-door.right.open {
+  transform: translateX(100%) translateZ(0) rotateY(-4deg);
+  box-shadow: 
+    -5px 0 25px -5px rgba(0, 0, 0, 0.8),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 门缝光效果 */
+.sliding-door.left.partially-open::after,
+.sliding-door.right.partially-open::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.sliding-door.left.partially-open::after {
+  right: -1px;
+  opacity: calc(var(--transform-amount) / 80);
+}
+
+.sliding-door.right.partially-open::after {
+  left: -1px;
+  opacity: calc(var(--transform-amount) / 80);
+}
+
+/* 立体木纹效果 */
+.wood-grain {
+  position: relative;
+}
+
+.wood-grain::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 6px,
+      rgba(0, 0, 0, 0.03) 6px,
+      rgba(0, 0, 0, 0.03) 12px
+    );
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+}
+
+/* 确保3D变换不影响交互 */
+.door-frame {
+  transform-style: flat;
+}
+
+.door-frame > * {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* 增强阴影效果 */
+.paper-texture {
+  position: relative;
+}
+
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.12;
+  mix-blend-mode: multiply;
+}
+
+.paper-texture::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15) 0%, 
+    rgba(255, 255, 255, 0) 50%, 
+    rgba(0, 0, 0, 0.05) 100%);
+  pointer-events: none;
+}
+
+.door-grid-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 横向栅格 */
+.horizontal-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 82%; /* 与纸质纹理匹配 */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 9.8%,
+    rgba(42, 28, 14, 0.9) 9.8%,
+    rgba(42, 28, 14, 0.9) 10.5%
+  );
+  z-index: 3;
+  pointer-events: none;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* 纵向栅格 */
+.vertical-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 82%; /* 与纸质纹理匹配 */
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent 23%,
+    rgba(42, 28, 14, 0.9) 23%,
+    rgba(42, 28, 14, 0.9) 24.5%
+  );
+  z-index: 3;
+  pointer-events: none;
+}
+
+.horizontal-grid::after,
+.vertical-grid::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+/* 3D深度效果 */
+.sliding-door.left.partially-open::before,
+.sliding-door.right.partially-open::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  opacity: 0.7;
+}
+
+.sliding-door.left.partially-open::before {
+  right: 0;
+  background: linear-gradient(to left, 
+    rgba(0, 0, 0, 0.5), 
+    rgba(0, 0, 0, 0) 100%);
+}
+
+.sliding-door.right.partially-open::before {
+  left: 0;
+  background: linear-gradient(to right, 
+    rgba(0, 0, 0, 0.5), 
+    rgba(0, 0, 0, 0) 100%);
+}
+
+/* 日文标记 */
+.japanese-mark {
+  position: absolute;
+  font-family: "Noto Sans JP", sans-serif;
+  color: rgba(0, 0, 0, 0.35);
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 4px;
+  font-size: 2rem;
+  line-height: 1.2;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.japanese-mark.left {
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+}
+
+.japanese-mark.right {
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+}
+
+/* 点击提示光效 */
+@keyframes pulse-hint {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+.click-hint {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  z-index: 30;
+  pointer-events: none;
+  animation: pulse-hint 1.5s infinite ease-in-out;
+  display: none;
+}
+
+.click-hint.visible {
+  display: block;
+}
+
+.click-hint.left {
+  top: 50%;
+  right: 50px;
+  transform: translateY(-50%);
+}
+
+.click-hint.right {
+  top: 50%;
+  left: 50px;
+  transform: translateY(-50%);
+}
+
+.click-hint::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+  transform: translate(-50%, -50%);
+}
+
+.click-hint.visible {
+  opacity: 1;
+}
+
+.click-hint.hidden {
+  opacity: 0;
+}
+</style>

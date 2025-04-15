@@ -1,0 +1,43 @@
+<template>
+  <div class="app-container">
+    <div class="blur-container">
+      <!-- 启动页面 -->
+      <div class="start-page" v-if="currentPage === 'start'">
+        <div class="header">
+          <h1>AETRIX开启您的IP发布</h1>
+          <p class="subtitle-zh">选择您要进行的操作</p>
+        </div>
+        
+        <div class="menu-options">
+          <div class="menu-card" data-text="发布作品" @click="goToWorkType()">
+            <div class="menu-icon product-icon"></div>
+          </div>
+          
+          <div class="menu-card" data-text="发布任务" @click="showUnavailable('task')">
+            <div class="menu-icon task-icon"></div>
+          </div>
+          
+          <div class="menu-card" data-text="发布活动" @click="showUnavailable('activity')">
+            <div class="menu-icon people-icon"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 作品类型选择页面 -->
+      <div class="work-type-container" v-if="currentPage === 'workType'">
+        <!-- 标题部分 -->
+        <div class="header">
+          <h1 class="title-with-subtitle">选择作品类型（注册类型）</h1>
+          <p class="subtitle-zh">请选择您要发布的作品类型</p>
+        </div>
+
+        <!-- 作品类型选项 -->
+        <div class="work-type-options">
+          <!-- 新IP选项 -->
+          <div 
+            class="work-type-card" 
+            :class="{ selected: selectedWorkType === 'newIP' }"
+            @click="selectWorkType('newIP')"
+          >
+            <div class="work-type-content">
+              <div class="work-type-icon new-icon">
