@@ -1,49 +1,45 @@
 <template>
-  <div class="license-conflict-alert" :class="{ visible: isVisible }">
+  <div class="license-conflict-alert" v-if="isVisible">
+    <div class="alert-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
     <div class="alert-content">
-      <div class="alert-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
+      <div class="alert-header">
+        <h3>许可证冲突</h3>
+        <button class="close-button" @click="closeAlert">×</button>
       </div>
-      <div class="alert-message">
-        <h3>许可证冲突提示</h3>
-        <p>{{ conflictReason }}</p>
-        
-        <div class="conflict-details">
-          <div class="conflict-license-section">
-            <span class="section-label">有效的许可证组合:</span>
-            <div class="license-combinations">
-              <div class="combination">
-                <span class="license-tag blue">开放使用</span>
-                <span class="combination-note">（单独使用）</span>
-              </div>
-              <div class="combination">
-                <span class="license-tag purple">非商业混音</span>
-                <span class="combination-separator">+</span>
-                <span class="license-tag green">商业使用</span>
-                <span class="combination-separator">+</span>
-                <span class="license-tag red">商业混音</span>
-                <span class="combination-note">（可任意组合）</span>
-              </div>
-            </div>
-          </div>
+      <p class="alert-description">{{ conflictReason }}</p>
+      
+      <div class="conflicting-licenses">
+        <span>冲突的许可证：</span>
+        <div class="license-tags">
+          <span v-for="license in conflictingLicenses" :key="license" class="license-tag">
+            {{ getLicenseName(license) }}
+          </span>
         </div>
       </div>
-      <button class="close-button" @click="$emit('close')" aria-label="关闭提示">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
+      
+      <div class="alert-suggestions" v-if="suggestions && suggestions.length > 0">
+        <h4>解决建议:</h4>
+        <ul>
+          <li v-for="(suggestion, index) in suggestions" :key="index">
+            {{ suggestion }}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
+import { defineProps, defineEmits } from 'vue';
+import { getLicenseName } from '../../services/LicenseService';
+
+defineProps({
   isVisible: {
     type: Boolean,
     default: false
@@ -54,154 +50,141 @@ const props = defineProps({
   },
   conflictReason: {
     type: String,
-    default: '开放使用（完全免费无限制）与其他许可证类型互斥，不能同时选择'
+    default: ''
+  },
+  suggestions: {
+    type: Array as () => string[],
+    default: () => []
   }
 });
 
-defineEmits(['close']);
+const emit = defineEmits(['close']);
+
+const closeAlert = () => {
+  emit('close');
+};
 </script>
 
 <style scoped>
 .license-conflict-alert {
-  width: 100%;
-  margin: 20px 0;
-  background: rgba(231, 76, 60, 0.1);
-  border: 1px solid rgba(231, 76, 60, 0.3);
-  border-radius: 8px;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s ease;
-}
-
-.license-conflict-alert.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.alert-content {
-  padding: 12px 16px;
+  background: rgba(255, 73, 73, 0.1);
+  border: 1px solid rgba(255, 73, 73, 0.5);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
   display: flex;
-  gap: 12px;
   align-items: flex-start;
+  color: rgba(255, 255, 255, 0.9);
+  width: 100%;
 }
 
 .alert-icon {
   flex-shrink: 0;
-  color: #e74c3c;
+  margin-right: 15px;
+  color: #ff4949;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.alert-message {
+.alert-content {
   flex: 1;
 }
 
-.alert-message h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  color: #e74c3c;
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-.alert-message p {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.4;
+.alert-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #ff4949;
 }
 
 .close-button {
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.6);
+  font-size: 24px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  line-height: 0;
-  transition: all 0.2s;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
 }
 
 .close-button:hover {
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
 }
 
-.conflict-details {
-  margin-top: 12px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+.alert-description {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 15px;
 }
 
-.conflict-license-section {
-  margin-bottom: 12px;
-}
-
-.section-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 8px;
-  display: block;
-}
-
-.license-combinations {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.combination {
+.conflicting-licenses {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.license-tags {
+  display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
 .license-tag {
-  display: inline-block;
+  background-color: rgba(255, 73, 73, 0.2);
+  color: rgba(255, 255, 255, 0.95);
   padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 13px;
-}
-
-.license-tag.blue {
-  background: rgba(33, 150, 243, 0.2);
-  color: rgb(80, 170, 243);
-}
-
-.license-tag.purple {
-  background: rgba(156, 39, 176, 0.2);
-  color: rgb(186, 104, 200);
-}
-
-.license-tag.green {
-  background: rgba(76, 175, 80, 0.2);
-  color: rgb(100, 180, 100);
-}
-
-.license-tag.red {
-  background: rgba(244, 67, 54, 0.2);
-  color: rgb(255, 99, 71);
-}
-
-.combination-separator {
-  color: rgba(255, 255, 255, 0.5);
+  border-radius: 100px;
   font-size: 14px;
+  display: inline-block;
 }
 
-.combination-note {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-left: 8px;
+.alert-suggestions {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-top: 15px;
 }
 
-@media (max-width: 768px) {
-  .license-combinations {
-    flex-direction: column;
+.alert-suggestions h4 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.alert-suggestions ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.alert-suggestions li {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.alert-suggestions li:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .license-conflict-alert {
+    padding: 15px;
   }
   
-  .combination {
-    margin-bottom: 8px;
+  .conflicting-licenses {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style> 

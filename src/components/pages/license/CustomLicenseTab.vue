@@ -11,6 +11,25 @@
       <p class="license-hint">您可以根据以下选项，进一步自定义许可证条款</p>
     </div>
 
+    <!-- 添加许可证建议区域 -->
+    <div class="license-suggestions" v-if="suggestLicenses.length > 0">
+      <h3>根据您的选择，我们推荐以下预设许可证</h3>
+      <div class="suggestion-tags">
+        <div 
+          v-for="license in suggestLicenses" 
+          :key="license" 
+          class="suggestion-tag"
+          @click="suggestLicenseClick(license)"
+        >
+          <div class="tag-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+          </div>
+          <span class="tag-name">{{ getLicenseName(license) }}</span>
+        </div>
+      </div>
+      <p class="suggestion-hint">点击任一建议可查看详情或快速切换到预设许可证标签页</p>
+    </div>
+
     <div class="license-filter-list">
       <!-- AI Training 选项 -->
       <div class="license-filter-item" :class="{ expanded: expandedFilters['ai-training'] }">
@@ -448,6 +467,9 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import FileUploadArea from './components/FileUploadArea.vue';
 
+// 引入许可证服务
+import LicenseService from '../../services/LicenseService';
+
 interface FilterSelections {
   'ai-training': string | null;
   'commercial-use': string | null;
@@ -495,7 +517,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['toggle-filter', 'set-filter', 'clear-filter', 'license-option-conflict', 'validate-licensing-fee', 'file-upload', 'validate-file-upload']);
+const emit = defineEmits(['toggle-filter', 'set-filter', 'clear-filter', 'license-option-conflict', 'validate-licensing-fee', 'file-upload', 'validate-file-upload', 'select-preset-license']);
 
 const licensePrice = ref(0);
 const revenueShare = ref(0);
@@ -531,10 +553,17 @@ const initializeFiltersFromPresets = () => {
   // 初始化时不设置任何默认值，保持所有选项为空
 };
 
-// 检查选项是否与预设许可证冲突 - 现在只显示提示，不阻止选择
+// 检查选项是否与预设许可证冲突 - 使用许可证服务
 const checkPresetConflict = (filterId: string, value: string): boolean => {
-  // 移除预设许可证冲突检查，返回false表示没有冲突
-  // 这样用户可以自由设置自定义选项
+  // 使用许可证服务检查冲突
+  const conflicts = LicenseService.checkOptionConflicts(filterId, value, props.selectedLicenses);
+  
+  if (conflicts.hasConflict) {
+    // 发送冲突事件
+    emit('license-option-conflict', filterId, value);
+    return true;
+  }
+  
   return false;
 };
 
@@ -668,14 +697,8 @@ const clearLicenseFee = () => {
 };
 
 // 获取许可证名称
-const getLicenseName = (licenseId: string) => {
-  const licenseNames: Record<string, string> = {
-    'commercial': '商业使用',
-    'commercial-remix': '商业混音',
-    'non-commercial': '非商业混音',
-    'open': '开放使用'
-  };
-  return licenseNames[licenseId] || licenseId;
+const getLicenseName = (license: string): string => {
+  return LicenseService.getLicenseName(license);
 };
 
 // 获取许可费用状态文本
@@ -1015,6 +1038,55 @@ defineExpose({
   isCommercialFileUploaded: commercialFileUploaded,
   isNonCommercialFileUploaded: nonCommercialFileUploaded
 });
+
+// 根据当前设置建议预设许可证
+const suggestLicenses = computed(() => {
+  // 只有当有实际选择时才建议
+  if (!isAnyFilterSelected.value) {
+    return [];
+  }
+  
+  // 转换为需要的类型格式
+  const filterSelectionsRecord: Record<string, string | null> = {};
+  Object.entries(props.filterSelections).forEach(([key, value]) => {
+    filterSelectionsRecord[key] = value;
+  });
+  
+  return LicenseService.suggestPresetLicenses(filterSelectionsRecord);
+});
+
+// 判断是否有任何过滤器被选中
+const isAnyFilterSelected = computed(() => {
+  return Object.values(props.filterSelections).some(value => value !== null);
+});
+
+// 添加建议点击处理
+const suggestLicenseClick = (license: string) => {
+  showConfirmation(
+    `您想要切换到预设许可证标签页并选择"${getLicenseName(license)}"许可证吗？`, 
+    (result) => {
+      if (result) {
+        // 清除当前选择
+        Object.keys(props.filterSelections).forEach(key => {
+          emit('clear-filter', key);
+        });
+        
+        // 通知父组件选择预设许可证
+        emit('select-preset-license', license);
+      }
+    }
+  );
+};
+
+// 显示确认对话框
+const showConfirmation = (message: string, callback: (result: boolean) => void) => {
+  // 简单实现，实际应该使用组件
+  if (confirm(message)) {
+    callback(true);
+  } else {
+    callback(false);
+  }
+};
 </script>
 
 <style scoped>
@@ -1559,5 +1631,59 @@ defineExpose({
 
 .attribution-button:hover {
   color: #e74c3c;
+}
+
+/* 许可证建议样式 */
+.license-suggestions {
+  background: rgba(30, 30, 35, 0.5);
+  border: 1px solid rgba(74, 144, 226, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.license-suggestions h3 {
+  font-size: 16px;
+  margin: 0 0 15px 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.suggestion-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.suggestion-tag {
+  display: flex;
+  align-items: center;
+  background: rgba(74, 144, 226, 0.15);
+  border: 1px solid rgba(74, 144, 226, 0.4);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestion-tag:hover {
+  background: rgba(74, 144, 226, 0.25);
+  transform: translateY(-2px);
+}
+
+.tag-icon {
+  margin-right: 8px;
+  color: rgba(74, 144, 226, 0.9);
+}
+
+.tag-name {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.suggestion-hint {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
 }
 </style> 

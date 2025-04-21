@@ -370,6 +370,9 @@ import UploadDropArea from '../license/UploadDropArea.vue';
 // @ts-ignore - 模块存在但TypeScript找不到类型声明
 import MintCostPage from '../license/MintCostPage.vue';
 
+// 使用新的许可证服务
+import LicenseService from '../../services/LicenseService';
+
 const emit = defineEmits(['navigate-back', 'navigate-next', 'license-update', 'license-conflict', 'license-select', 'navigate-to-commercial-pricing', 'navigate-to-commercial-remix-pricing', 'navigate-to-combined-pricing']);
 
 // 错误提示状态
@@ -496,6 +499,7 @@ const currentConflict = ref<{
   newLicense: string;
   conflictingLicenses: string[];
   reason: string;
+  suggestions?: string[]; // 添加建议
 }>({
   newLicense: '',
   conflictingLicenses: [],
@@ -914,12 +918,13 @@ const selectLicense = (licenseId: string) => {
       currentConflict.value = {
         newLicense: licenseId,
         conflictingLicenses: licenseConflicts.conflictingLicenses,
-        reason: licenseConflicts.reason
+        reason: licenseConflicts.reason,
+        suggestions: licenseConflicts.suggestions // 添加建议
       };
       // 显示内联冲突提示
       showConflictAlert.value = true;
       // 同时发送冲突事件给父组件，用于可能的弹窗显示
-      emit('license-conflict', licenseId, licenseConflicts.conflictingLicenses, licenseConflicts.reason);
+      emit('license-conflict', licenseId, licenseConflicts.conflictingLicenses, licenseConflicts.reason, licenseConflicts.suggestions);
       return;
     }
     
@@ -976,33 +981,8 @@ const selectLicense = (licenseId: string) => {
 
 // 检查许可证冲突
 const checkLicenseConflicts = (newLicense: string) => {
-  const conflicts = {
-    hasConflict: false,
-    conflictingLicenses: [] as string[],
-    reason: ''
-  };
-  
-  // 开放使用与其他所有许可证互斥
-  if (newLicense === 'open') {
-    // 开放使用与其他所有许可证冲突
-    const conflicting = props.selectedLicenses.filter(l => 
-      ['commercial', 'commercial-remix', 'non-commercial'].includes(l)
-    );
-    
-    if (conflicting.length > 0) {
-      conflicts.hasConflict = true;
-      conflicts.conflictingLicenses = conflicting;
-      conflicts.reason = '开放使用（完全免费无限制）与其他许可证类型互斥，不能同时选择';
-    }
-  } 
-  // 如果选择其他许可证时，已经有了开放使用许可证
-  else if (props.selectedLicenses.includes('open')) {
-    conflicts.hasConflict = true;
-    conflicts.conflictingLicenses = ['open'];
-    conflicts.reason = '其他许可证类型与开放使用（完全免费无限制）互斥，不能同时选择';
-  }
-  
-  return conflicts;
+  // 使用许可证服务进行冲突检测
+  return LicenseService.checkLicenseConflicts(newLicense, props.selectedLicenses);
 };
 
 // 关闭冲突提示
@@ -1020,13 +1000,7 @@ const removeLicense = (license: string) => {
 
 // 获取许可证名称
 const getLicenseName = (license: string) => {
-  const licenseNames = {
-    'open': '开放使用',
-    'non-commercial': '非商业混音',
-    'commercial': '商业使用',
-    'commercial-remix': '商业混音'
-  };
-  return (licenseNames as any)[license] || license;
+  return LicenseService.getLicenseName(license);
 };
 
 // 页面导航
@@ -1270,9 +1244,23 @@ const getAssetTypeChinese = computed(() => {
 });
 
 // 处理选项冲突
-const handleOptionConflict = (conflictData: any) => {
-  optionConflictData.value = conflictData;
-  showOptionConflictModal.value = true;
+const handleOptionConflict = (filterId: string, value: string) => {
+  // 使用许可证服务检查选项冲突
+  const conflicts = LicenseService.checkOptionConflicts(filterId, value, props.selectedLicenses);
+  
+  if (conflicts.hasConflict) {
+    // 显示冲突提示
+    currentConflict.value = {
+      newLicense: 'custom',
+      conflictingLicenses: conflicts.conflictingLicenses,
+      reason: conflicts.reason,
+      suggestions: conflicts.suggestions
+    };
+    showConflictAlert.value = true;
+    return true;
+  }
+  
+  return false;
 };
 
 // 关闭选项冲突模态窗口
@@ -2273,6 +2261,48 @@ const getCustomUploadedFiles = () => {
   
   // 如果都没有，返回空数组
   return [];
+};
+
+// 处理自定义许可证建议选择预设许可证
+const handleSelectPresetLicense = (licenseId: string) => {
+  // 切换到预设许可证标签页
+  activeTabIndex.value = 0;
+  
+  // 清除自定义许可证的所有选择
+  clearAllFilters();
+  
+  // 添加预设许可证
+  setTimeout(() => {
+    // 延迟执行，确保标签页已经切换
+    const currentLicenses = [...props.selectedLicenses];
+    
+    // 检查冲突
+    const licenseConflicts = checkLicenseConflicts(licenseId);
+    if (licenseConflicts.hasConflict) {
+      // 设置当前冲突数据
+      currentConflict.value = {
+        newLicense: licenseId,
+        conflictingLicenses: licenseConflicts.conflictingLicenses,
+        reason: licenseConflicts.reason,
+        suggestions: licenseConflicts.suggestions
+      };
+      // 显示内联冲突提示
+      showConflictAlert.value = true;
+    } else {
+      // 无冲突，添加许可证
+      if (!currentLicenses.includes(licenseId)) {
+        const updatedLicenses = [...currentLicenses, licenseId];
+        emit('license-update', updatedLicenses);
+      }
+    }
+  }, 100);
+};
+
+// 清除所有过滤器
+const clearAllFilters = () => {
+  Object.keys(filterSelections.value).forEach(key => {
+    filterSelections.value[key] = null;
+  });
 };
 </script>
 
